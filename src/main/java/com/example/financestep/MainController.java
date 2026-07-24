@@ -4,6 +4,7 @@ package com.example.financestep;
 import com.example.financestep.model.*;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -103,6 +104,10 @@ public class MainController {
         aggiornaPermessiUI(isTutor);
 
         // Lista delle transazioni da memorizzare
+        listaTransazioni = FXCollections.observableArrayList(
+                DatabaseManager.caricaTransazioni(utenteCorrente.getUsername())
+        );
+        aggiornaListaTransazioni();
 
         // Filtro compiti/task in base all'utente
         aggiornaListaCompiti();
@@ -130,6 +135,10 @@ public class MainController {
             menuEditDelete.setDisable(!isTutor);
             menuEditDelete.setVisible(isTutor); // Nascosto agli User
         }
+    }
+
+    private void aggiornaListaTransazioni(){
+        tableTransazioni.setItems(listaTransazioni);
     }
 
     private void aggiornaListaCompiti() {
@@ -591,10 +600,14 @@ public class MainController {
             NuovaTransazioneController controller = fxmlLoader.getController();
 
             controller.setOnSalvaCallback(nuovaTransazione -> {
-                // 1. Aggiunge la transazione alla tabella
+
+                // 1. Salva la transazione nel Database SQLite
+                DatabaseManager.salvaTransazione(nuovaTransazione, utenteCorrente.getUsername());
+
+                // 2. Aggiunge la transazione alla tabella
                 listaTransazioni.add(nuovaTransazione);
 
-                // 2. Ricalcola subito il saldo totale del portafoglio!
+                // 3. Ricalcola subito il saldo totale del portafoglio!
                 aggiornaSaldoPortafoglio();
 
                 System.out.println("Aggiunta alla tabella: " + nuovaTransazione.getDettaglio());
@@ -755,6 +768,10 @@ public class MainController {
 
             // Callback per aggiungere il task appena creato alla lista
             controller.setOnSalvaCallback(nuovoTask -> {
+                // 1. Salva il task nel Database SQLite
+                DatabaseManager.salvaTask(nuovoTask);
+
+                //2. Aggiunge alla lista principale dei task
                 listaTask.add(nuovoTask);
                 aggiornaListaCompiti();
                 mostraAvviso(
