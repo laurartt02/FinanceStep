@@ -17,7 +17,7 @@ public class Tutor extends Persona {
         }
     }
 
-    public void assegnaTask(Task task, User user) {
+    public void assegnaTask(Task task, Junior junior) {
         // Logica per collegare la task all'utente
     }
 

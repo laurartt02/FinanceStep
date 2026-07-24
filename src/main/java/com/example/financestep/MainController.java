@@ -94,7 +94,7 @@ public class MainController {
 
         // Determiniamo il ruolo da mostrare tra parentesi
         boolean isTutor = (persona instanceof Tutor);
-        String ruolo = isTutor ? "Tutor" : "User";
+        String ruolo = isTutor ? "Tutor" : "Junior";
 
         // Impostiamo la Label: "Persona: Username (Ruolo)"
         lblPersonaCorrente.setText("Persona: " + persona.getUsername() + " (" + ruolo + ")");
@@ -118,7 +118,7 @@ public class MainController {
     }
 
     private void aggiornaPermessiUI(boolean isTutor) {
-        // 1. Modifica Obiettivo: attiva per TUTTI (User e Tutor)
+        // 1. Modifica Obiettivo: attiva per TUTTI (Junior e Tutor)
         if (btnModificaObiettivo != null) {
             btnModificaObiettivo.setVisible(true);
             btnModificaObiettivo.setDisable(false);
@@ -127,13 +127,13 @@ public class MainController {
         // 2. Reset Dati: riservato al Tutor
         if (menuReset != null) {
             menuReset.setDisable(!isTutor);
-            menuReset.setVisible(isTutor); // Nascosto agli User
+            menuReset.setVisible(isTutor); // Nascosto agli Junior
         }
 
         // 3. Elimina Transazione: riservato al Tutor
         if (menuEditDelete != null) {
             menuEditDelete.setDisable(!isTutor);
-            menuEditDelete.setVisible(isTutor); // Nascosto agli User
+            menuEditDelete.setVisible(isTutor); // Nascosto agli Junior
         }
     }
 
@@ -155,14 +155,14 @@ public class MainController {
             // Il Tutor vede TUTTI i compiti assegnati a qualunque utente
             tableCompiti.setItems(listaTask);
         } else if (utenteCorrente != null) {
-            // L'User vede SOLO i compiti indirizzati specificamente a lui
-            ObservableList<Task> compitiUser = javafx.collections.FXCollections.observableArrayList();
+            // Junior vede SOLO i compiti indirizzati specificamente a lui
+            ObservableList<Task> compitiJunior = javafx.collections.FXCollections.observableArrayList();
             for (Task t : listaTask) {
                 if (t.getDestinatario() != null && t.getDestinatario().equalsIgnoreCase(utenteCorrente.getUsername())) {
-                    compitiUser.add(t);
+                    compitiJunior.add(t);
                 }
             }
-            tableCompiti.setItems(compitiUser);
+            tableCompiti.setItems(compitiJunior);
         }
     }
 
@@ -179,14 +179,14 @@ public class MainController {
             // Il Tutor vede TUTTE le richieste inviate da chiunque
             tableRichieste.setItems(listaRichieste);
         } else if (utenteCorrente != null) {
-            // L'User vede SOLO le proprie richieste
-            ObservableList<RichiestaExtra> richiesteUser = javafx.collections.FXCollections.observableArrayList();
+            // Lo Junior vede SOLO le proprie richieste
+            ObservableList<RichiestaExtra> richiesteJunior = javafx.collections.FXCollections.observableArrayList();
             for (RichiestaExtra r : listaRichieste) {
                 if (r.getRichiedente() != null && r.getRichiedente().equalsIgnoreCase(utenteCorrente.getUsername())) {
-                    richiesteUser.add(r);
+                    richiesteJunior.add(r);
                 }
             }
-            tableRichieste.setItems(richiesteUser);
+            tableRichieste.setItems(richiesteJunior);
         }
     }
 
@@ -394,7 +394,7 @@ public class MainController {
                 javafx.scene.control.Alert.AlertType.INFORMATION,
                 "Informazioni su FinanceStep",
                 "FinanceStep - Applicazione di Educazione Finanziaria v1.0\n" +
-                        "Sviluppato per la gestione condivisa dei risparmi (Tutor & User).\n\n" +
+                        "Sviluppato per la gestione condivisa dei risparmi (Tutor & Junior).\n\n" +
                         "Anno: 2026"
         );
     }
@@ -523,7 +523,7 @@ public class MainController {
                                                 String.format("%.2f", selezionata.getImporto()) + " è stata approvata."
                                 );
                             }
-                            // Se è lo User, invia/notifica la richiesta al Tutor
+                            // Se è lo Junior, invia/notifica la richiesta al Tutor
                             else {
                                 mostraAvviso(
                                         javafx.scene.control.Alert.AlertType.INFORMATION,
@@ -582,11 +582,11 @@ public class MainController {
         tableCompiti.setVisible(false);
         tableRichieste.setVisible(true);
 
-        boolean isUser = !(utenteCorrente instanceof Tutor);
+        boolean isJunior = !(utenteCorrente instanceof Tutor);
 
-        // "Nuova Richiesta" visibile SOLO nelle Richieste ED è un User
+        // "Nuova Richiesta" visibile SOLO nelle Richieste ED è un Junior
         if (btnNuovoCompito != null) btnNuovoCompito.setVisible(false);
-        if (btnNuovaRichiesta != null) btnNuovaRichiesta.setVisible(isUser);
+        if (btnNuovaRichiesta != null) btnNuovaRichiesta.setVisible(isJunior);
     }
 
     @FXML
@@ -799,7 +799,7 @@ public class MainController {
             mostraAvviso(
                     javafx.scene.control.Alert.AlertType.ERROR,
                     "Accesso Negato",
-                    "Solo gli User possono inviare richieste di fondi extra!"
+                    "Solo gli Junior possono inviare richieste di fondi extra!"
             );
             return;
         }
@@ -810,7 +810,7 @@ public class MainController {
 
             NuovaRichiestaController controller = loader.getController();
 
-            // Callback quando l'User invia la richiesta
+            // Callback quando lo Junior invia la richiesta
             controller.setOnSalvaCallback((importo, motivazione) -> {
                 // 1. Crea l'oggetto RichiestaExtra
                 RichiestaExtra nuovaRichiesta = new RichiestaExtra(importo, motivazione, utenteCorrente.getUsername());

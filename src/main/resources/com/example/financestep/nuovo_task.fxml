@@ -21,7 +21,7 @@
     <Label text="Scadenza:"/>
     <DatePicker fx:id="dpScadenza"/>
 
-    <Label text="Destinatario (Username User):"/>
+    <Label text="Destinatario (Username Junior):"/>
     <TextField fx:id="txtDestinatario" promptText="Es. Mario"/>
 
     <HBox spacing="10.0" alignment="CENTER_RIGHT">

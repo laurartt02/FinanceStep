@@ -60,12 +60,12 @@
 
                         <VBox spacing="5.0">
                             <children>
-                                <Label text="👥 Ruoli e Permessi (Tutor vs User)">
+                                <Label text="👥 Ruoli e Permessi (Tutor vs Junior)">
                                     <font>
                                         <Font name="System Bold" size="14.0" />
                                     </font>
                                 </Label>
-                                <Label text="• Tutor: Ha pieno controllo, può modificare l'obiettivo del salvadanaio, resettare l'applicazione e gestire compiti/richieste.&#10;• User: Può gestire i propri risparmi, effettuare versamenti/prelievi e richiedere extra al Tutor." wrapText="true" />
+                                <Label text="• Tutor: Ha pieno controllo, può modificare l'obiettivo del salvadanaio, resettare l'applicazione e gestire compiti/richieste.&#10;• Junior: Può gestire i propri risparmi, effettuare versamenti/prelievi e richiedere extra al Tutor." wrapText="true" />
                             </children>
                         </VBox>
                     </children>

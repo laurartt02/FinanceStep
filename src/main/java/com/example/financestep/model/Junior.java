@@ -3,13 +3,13 @@ package com.example.financestep.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class User extends Persona {
+public class Junior extends Persona {
     private int rating;
     private Portafoglio portafoglio;
     private List<Salvadanaio> salvadanai;
 
     // Costruttore semplificato per il Login
-    public User(String username) {
+    public Junior(String username) {
         super(1, username, "", ""); // id=1, password e email vuote
         this.rating = 0;
         this.portafoglio = null;

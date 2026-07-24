@@ -2,7 +2,7 @@ package com.example.financestep;
 
 import com.example.financestep.model.Persona;
 import com.example.financestep.model.Tutor;
-import com.example.financestep.model.User;
+import com.example.financestep.model.Junior;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -23,7 +23,7 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        comboRuolo.getItems().addAll("Tutor", "User");
+        comboRuolo.getItems().addAll("Tutor", "Junior");
         comboRuolo.getSelectionModel().selectFirst();
     }
 
@@ -42,7 +42,7 @@ public class LoginController {
         if ("Tutor".equalsIgnoreCase(ruoloSelezionato)) {
             utenteLoggato = new Tutor(username);
         } else {
-            utenteLoggato = new User(username);
+            utenteLoggato = new Junior(username);
         }
 
         apriSchermataPrincipale(utenteLoggato);

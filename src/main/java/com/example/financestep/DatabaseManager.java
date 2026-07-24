@@ -21,7 +21,7 @@ public class DatabaseManager {
         String sqlUtenti = "CREATE TABLE IF NOT EXISTS utenti ("
                 + "username TEXT PRIMARY KEY, "
                 + "password TEXT NOT NULL, "
-                + "ruolo TEXT NOT NULL"
+                + "ruolo TEXT NOT NULL" // "Junior" o "Tutor"
                 + ");";
 
         String sqlTransazioni = "CREATE TABLE IF NOT EXISTS transazioni ("

@@ -7,7 +7,7 @@ public class Task {
     private double premio;
     private boolean completato;
     private LocalDate scadenza;
-    private String destinatario; // username dello User a cui è destinato il task
+    private String destinatario; // username dello Junior a cui è destinato il task
 
     public Task(String titolo, double premio, LocalDate scadenza, String destinatario) {
         this.titolo = titolo;
