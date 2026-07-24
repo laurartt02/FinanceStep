@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="12.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.financestep.NuovoTaskController" prefWidth="320.0">
+    <padding>
+        <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
+    </padding>
+
+    <Label text="Assegna Nuovo Task" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <Label text="Titolo Compito:"/>
+    <TextField fx:id="txtTitolo" promptText="Es. Lavare la macchina"/>
+
+    <Label text="Premio (€):"/>
+    <TextField fx:id="txtPremio" promptText="Es. 10.00"/>
+
+    <Label text="Scadenza:"/>
+    <DatePicker fx:id="dpScadenza"/>
+
+    <Label text="Destinatario (Username User):"/>
+    <TextField fx:id="txtDestinatario" promptText="Es. Mario"/>
+
+    <HBox spacing="10.0" alignment="CENTER_RIGHT">
+        <Button text="Annulla" onAction="#gestisciAnnulla"/>
+        <Button text="Assegna Task" onAction="#gestisciSalva" style="-fx-background-color: #2e7d32; -fx-text-fill: white;"/>
+    </HBox>
+</VBox>
