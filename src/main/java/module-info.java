@@ -8,4 +8,6 @@ module com.example.financestep {
     opens com.example.financestep to javafx.fxml;
     opens com.example.financestep.model to javafx.base;
     exports com.example.financestep;
+    exports com.example.financestep.controller;
+    opens com.example.financestep.controller to javafx.fxml;
 }

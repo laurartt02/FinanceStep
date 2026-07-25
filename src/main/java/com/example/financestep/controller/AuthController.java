@@ -1,4 +1,4 @@
-package com.example.financestep;
+package com.example.financestep.controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,7 +24,7 @@ public class AuthController {
 
     private void apriFinestra(ActionEvent event, String fxml, String titolo) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/financestep/" + fxml));
             Parent root = loader.load();
 
             Stage nuovaStage = new Stage();

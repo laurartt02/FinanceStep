@@ -9,7 +9,7 @@
 
 <VBox spacing="10.0" xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.financestep.MonitoraTransazioniController"
+      fx:controller="com.example.financestep.controller.MonitoraTransazioniController"
       prefWidth="600.0" prefHeight="400.0">
 
     <padding>

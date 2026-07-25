@@ -1,33 +1,27 @@
-package com.example.financestep;
+package com.example.financestep.controller;
 
-import com.example.financestep.model.Persona;
+import com.example.financestep.DatabaseManager;
+import com.example.financestep.model.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.prefs.Preferences;
 
-public class LoginController {
-
-    private static final Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
-    private static final String PREF_ULTIMO_USERNAME = "ultimo_username";
+public class RegistrazioneController {
 
     @FXML
-    private TextField txtNome;
+    private TextField txtUsername;
 
     @FXML
     private PasswordField txtPassword;
 
-    // mostra la password in chiaro
+    // campo "gemello" testuale per mostrare la password in chiaro
     @FXML
     private TextField txtPasswordVisibile;
 
@@ -35,23 +29,22 @@ public class LoginController {
     @FXML
     private Button btnTogglePassword;
 
-    // stato corrente
+    @FXML
+    private ComboBox<String> comboRuolo;
+
+    // stato corrente (mostrata sì/no)
     private boolean passwordVisibile = false;
 
     @FXML
     public void initialize() {
-        String ultimoUsername = prefs.get(PREF_ULTIMO_USERNAME, "");
-        if (!ultimoUsername.isEmpty()) {
-            txtNome.setText(ultimoUsername);
-        }
-        // comboRuolo è sparito da qui: il ruolo ora viene dal DB, non più scelto a mano
+        comboRuolo.getItems().addAll("Tutor", "Junior");
+        comboRuolo.getSelectionModel().selectFirst();
 
         // sincronizza il testo tra i due campi password
         txtPasswordVisibile.textProperty().bindBidirectional(txtPassword.textProperty());
     }
 
     // alterna visibilità tra PasswordField (mascherato) e TextField (in chiaro)
-    // e cambia l'icona del bottone di conseguenza
     @FXML
     private void toggleMostraPassword() {
         passwordVisibile = !passwordVisibile;
@@ -65,30 +58,47 @@ public class LoginController {
     }
 
     @FXML
-    private void gestisciLogin(ActionEvent event) {
-        String username = txtNome.getText().trim();
+    private void handleConfermaRegistrazione(ActionEvent event) {
+        String username = txtUsername.getText().trim();
         String password = txtPassword.getText();
+        String ruolo = comboRuolo.getValue();
 
         if (username.isEmpty() || password.isEmpty()) {
-            mostraErrore("Inserisci username e password.");
+            mostraErrore("Compila tutti i campi.");
             return;
         }
 
-        Persona utenteLoggato = DatabaseManager.verificaUtente(username, password);
-
-        if (utenteLoggato == null) {
-            mostraErrore("Credenziali errate o utente non registrato, riprova.");
+        if (DatabaseManager.utenteEsiste(username)) {
+            mostraErrore("Username già in uso.");
             return;
         }
 
-        prefs.put(PREF_ULTIMO_USERNAME, username);
+        boolean successo = DatabaseManager.salvaUtente(username, password, ruolo);
 
-        apriSchermataPrincipale(utenteLoggato, event);
+        if (!successo) {
+            mostraErrore("Errore durante la registrazione, riprova.");
+            return;
+        }
+
+        Persona utenteRegistrato;
+        if ("Tutor".equalsIgnoreCase(ruolo)) {
+            utenteRegistrato = new Tutor(username);
+        } else {
+            utenteRegistrato = new Junior(username);
+        }
+
+        Alert benvenuto = new Alert(Alert.AlertType.INFORMATION);
+        benvenuto.setTitle("Registrazione completata");
+        benvenuto.setHeaderText(null);
+        benvenuto.setContentText("Benvenut* su FinanceStep! :)");
+        benvenuto.showAndWait();
+
+        apriSchermataPrincipale(utenteRegistrato, event);
     }
 
     private void mostraErrore(String messaggio) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Errore login");
+        alert.setTitle("Errore registrazione");
         alert.setHeaderText(null);
         alert.setContentText(messaggio);
         alert.showAndWait();
@@ -96,7 +106,7 @@ public class LoginController {
 
     private void apriSchermataPrincipale(Persona persona, ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/financestep/hello-view.fxml"));
             Parent root = loader.load();
 
             MainController mainController = loader.getController();
@@ -107,8 +117,8 @@ public class LoginController {
             stagePrincipale.setScene(new Scene(root, 900, 600));
             stagePrincipale.show();
 
-            Stage stageLogin = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stageLogin.close();
+            Stage stageRegistrazione = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stageRegistrazione.close();
 
         } catch (IOException e) {
             e.printStackTrace();

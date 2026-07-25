@@ -1,4 +1,4 @@
-package com.example.financestep; // o il package corretto del controller
+package com.example.financestep.controller; // o il package corretto del controller
 
 import com.example.financestep.model.Entrata;
 import com.example.financestep.model.Spesa;

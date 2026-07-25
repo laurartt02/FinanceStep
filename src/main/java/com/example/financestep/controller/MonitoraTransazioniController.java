@@ -1,5 +1,6 @@
-package com.example.financestep;
+package com.example.financestep.controller;
 
+import com.example.financestep.DatabaseManager;
 import com.example.financestep.model.Transazione;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;

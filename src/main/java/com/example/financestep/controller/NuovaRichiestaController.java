@@ -1,4 +1,4 @@
-package com.example.financestep;
+package com.example.financestep.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

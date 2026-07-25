@@ -1,6 +1,11 @@
-package com.example.financestep;
+package com.example.financestep.controller;
 
 
+import com.example.financestep.DatabaseManager;
+import com.example.financestep.controller.MonitoraTransazioniController;
+import com.example.financestep.controller.NuovaRichiestaController;
+import com.example.financestep.controller.NuovaTransazioneController;
+import com.example.financestep.controller.NuovoTaskController;
 import com.example.financestep.model.*;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -257,7 +262,7 @@ public class MainController {
     @FXML
     private void gestisciLogout() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/financestep/login.fxml"));
             Stage stageLogin = new Stage();
             stageLogin.setTitle("Accedi a FinanceStep");
             stageLogin.setScene(new Scene(loader.load(), 320, 280));
@@ -302,6 +307,8 @@ public class MainController {
                 if (index >= 0) {
                     // Sostituiamo il vecchio elemento con quello modificato
                     tableTransazioni.getItems().set(index, transazioneModificata);
+                    // Riordina anche dopo una modifica, in caso la data sia cambiata
+                    aggiornaListaTransazioni();
                     // Ricalcoliamo subito il saldo del portafoglio
                     aggiornaSaldoPortafoglio();
                 }
@@ -406,7 +413,7 @@ public class MainController {
     @FXML
     private void gestisciGuida() {
         try {
-            java.net.URL fxmlLocation = getClass().getResource("guida.fxml");
+            java.net.URL fxmlLocation = getClass().getResource("/com/example/financestep/guida.fxml");
             if (fxmlLocation == null) {
                 fxmlLocation = getClass().getResource("/com/example/financestep/guida.fxml");
             }
@@ -792,7 +799,10 @@ public class MainController {
                 // 2. Aggiunge la transazione alla tabella
                 listaTransazioni.add(nuovaTransazione);
 
-                // 3. Ricalcola subito il saldo totale del portafoglio!
+                // 3. Riordina la lista per data (più recente in alto)
+                aggiornaListaTransazioni();
+
+                // 4. Ricalcola subito il saldo totale del portafoglio!
                 aggiornaSaldoPortafoglio();
 
                 System.out.println("Aggiunta alla tabella: " + nuovaTransazione.getDettaglio());
