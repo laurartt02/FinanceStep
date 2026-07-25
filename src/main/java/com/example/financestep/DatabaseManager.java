@@ -74,7 +74,88 @@ public class DatabaseManager {
         }
     }
 
-    // --- OPERAZIONI PORTAFOGLIO ---
+    // --- OPERAZIONI UTENTI ---
+
+    public static boolean utenteEsiste(String username) {
+        String sql = "SELECT 1 FROM utenti WHERE username = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next(); // true se esiste già una riga
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean salvaUtente(String username, String password, String ruolo) {
+        if (utenteEsiste(username)) {
+            return false; // username già registrato
+        }
+
+        String sql = "INSERT INTO utenti(username, password, ruolo) VALUES(?,?,?)";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            pstmt.setString(3, ruolo);
+
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static Persona verificaUtente(String username, String password) {
+        String sql = "SELECT * FROM utenti WHERE username = ? AND password = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    String ruolo = rs.getString("ruolo");
+                    if ("Tutor".equalsIgnoreCase(ruolo)) {
+                        return new Tutor(username);
+                    } else {
+                        return new Junior(username);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null; // credenziali errate o utente inesistente
+    }
+
+    public static String recuperaRuolo(String username) {
+        String sql = "SELECT ruolo FROM utenti WHERE username = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("ruolo");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // utente inesistente
+    }
 
     // --- OPERAZIONI SALVADANAIO ---
 

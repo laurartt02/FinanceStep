@@ -4,9 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3518af70-d4a8-460e-aeb8-49bb0615295c" name="Changes" comment="Miglioramenti: Bottone &quot;Edit &gt; Annulla Selezione&quot; del menu bar abilitato anche per le righe delle tabelle Compiti e Richieste + Label del Saldo Portafoglio, Salvadanaio e Obiettivo resi persistenti ad ogni modifica e ad ogni nuova apertura dell'app">
+    <list default="true" id="3518af70-d4a8-460e-aeb8-49bb0615295c" name="Changes" comment="Nuova Modifica: ordinamento automatico delle tuple di ciascuna tabella in ordine cronologico, a partire dalla data più recente e scorrendo in basso i più datati">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/MonitoraTransazioniController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/RegistrazioneController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/auth.fxml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/monitora_transazioni.fxml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/registrazione.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/LoginController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/LoginController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/login.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/login.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,8 +28,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="FxmlFile" />
         <option value="Class" />
+        <option value="FxmlFile" />
       </list>
     </option>
   </component>
@@ -105,7 +117,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784945616318</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Nuova Modifica: ordinamento automatico delle tuple di ciascuna tabella in ordine cronologico, a partire dalla data più recente e scorrendo in basso i più datati">
+      <created>1784968778043</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1784968778043</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -130,6 +149,7 @@
     <MESSAGE value="Secondo Commit del mio progetto FinanceStep" />
     <MESSAGE value="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;" />
     <MESSAGE value="Miglioramenti: Bottone &quot;Edit &gt; Annulla Selezione&quot; del menu bar abilitato anche per le righe delle tabelle Compiti e Richieste + Label del Saldo Portafoglio, Salvadanaio e Obiettivo resi persistenti ad ogni modifica e ad ogni nuova apertura dell'app" />
-    <option name="LAST_COMMIT_MESSAGE" value="Miglioramenti: Bottone &quot;Edit &gt; Annulla Selezione&quot; del menu bar abilitato anche per le righe delle tabelle Compiti e Richieste + Label del Saldo Portafoglio, Salvadanaio e Obiettivo resi persistenti ad ogni modifica e ad ogni nuova apertura dell'app" />
+    <MESSAGE value="Nuova Modifica: ordinamento automatico delle tuple di ciascuna tabella in ordine cronologico, a partire dalla data più recente e scorrendo in basso i più datati" />
+    <option name="LAST_COMMIT_MESSAGE" value="Nuova Modifica: ordinamento automatico delle tuple di ciascuna tabella in ordine cronologico, a partire dalla data più recente e scorrendo in basso i più datati" />
   </component>
 </project>

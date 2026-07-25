@@ -42,7 +42,10 @@ public class MainController {
 
     @FXML private javafx.scene.control.Button btnModificaObiettivo;
     @FXML private javafx.scene.control.Button btnNuovoCompito;
-    @FXML private javafx.scene.control.Button btnNuovaRichiesta;
+    @FXML
+    private javafx.scene.control.Button btnNuovaRichiesta;
+    @FXML
+    private javafx.scene.control.Button btnMonitoraJunior;
 
     @FXML private javafx.scene.control.MenuItem menuSave;
     @FXML private javafx.scene.control.MenuItem menuReset;
@@ -129,6 +132,9 @@ public class MainController {
         aggiornaVisteSalvadanaio();
         System.out.println(">>> DEBUG Salvadanaio caricato: obiettivo=" + salvadanaioCorrente.getSommaTarget() + " versato=" + salvadanaioCorrente.getSommaVersata());
 
+        mostraTransazioni();
+        System.out.println(">>> DEBUG Salvadanaio caricato: obiettivo=" + salvadanaioCorrente.getSommaTarget() + " versato=" + salvadanaioCorrente.getSommaVersata());
+
     }
 
     private void aggiornaPermessiUI(boolean isTutor) {
@@ -148,6 +154,12 @@ public class MainController {
         if (menuEditDelete != null) {
             menuEditDelete.setDisable(!isTutor);
             menuEditDelete.setVisible(isTutor); // Nascosto agli Junior
+        }
+
+        // 4. Monitora Junior: riservato al Tutor
+        if (btnMonitoraJunior != null) {
+            btnMonitoraJunior.setVisible(isTutor);
+            btnMonitoraJunior.setDisable(!isTutor);
         }
     }
 
@@ -595,9 +607,13 @@ public class MainController {
         tableCompiti.setVisible(false);
         tableRichieste.setVisible(false);
 
+        boolean isTutor = (utenteCorrente instanceof Tutor);
+
         // Nascondi tutti i bottoni in basso
         if (btnNuovoCompito != null) btnNuovoCompito.setVisible(false);
         if (btnNuovaRichiesta != null) btnNuovaRichiesta.setVisible(false);
+        // "MonitoraJunior" visibile SOLO nella tab Transazioni E se è un Tutor
+        if (btnMonitoraJunior != null) btnMonitoraJunior.setVisible(isTutor);
     }
 
     @FXML
@@ -611,6 +627,9 @@ public class MainController {
         // "Nuovo Compito" visibile SOLO se siamo nei Compiti ED è un Tutor
         if (btnNuovoCompito != null) btnNuovoCompito.setVisible(isTutor);
         if (btnNuovaRichiesta != null) btnNuovaRichiesta.setVisible(false);
+        // fuori dalla tab Transazioni, il bottone non deve comparire
+        if (btnMonitoraJunior != null) btnMonitoraJunior.setVisible(false);
+
     }
 
     @FXML
@@ -624,6 +643,8 @@ public class MainController {
         // "Nuova Richiesta" visibile SOLO nelle Richieste ED è un Junior
         if (btnNuovoCompito != null) btnNuovoCompito.setVisible(false);
         if (btnNuovaRichiesta != null) btnNuovaRichiesta.setVisible(isJunior);
+        // fuori dalla tab Transazioni, il bottone non deve comparire
+        if (btnMonitoraJunior != null) btnMonitoraJunior.setVisible(false);
     }
 
     // Gestione Salvadanaio
@@ -884,7 +905,70 @@ public class MainController {
         }
     }
 
-    // Finestra per Avvisi
+    // Monitoraggio Transazioni di uno Junior da parte di un Tutor
+    @FXML
+    public void apriMonitoraJunior() {
+        // Controllo permessi: solo il Tutor può monitorare uno Junior
+        if (!(utenteCorrente instanceof Tutor)) {
+            mostraAvviso(
+                    javafx.scene.control.Alert.AlertType.ERROR,
+                    "Accesso Negato",
+                    "Solo il Tutor può monitorare le transazioni di uno Junior!"
+            );
+            return;
+        }
+
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        dialog.setTitle("Monitora Transazioni di uno Junior");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Scrivi nome utente Junior da osservare:");
+
+        dialog.showAndWait().ifPresent(nomeInserito -> {
+            String nomeJunior = nomeInserito.trim();
+
+            if (nomeJunior.isEmpty()) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Attenzione", "Inserisci un nome utente.");
+                return;
+            }
+
+            String ruolo = DatabaseManager.recuperaRuolo(nomeJunior);
+
+            if (ruolo == null) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore",
+                        "Lo Junior " + nomeJunior + " non esiste.");
+                return;
+            }
+
+            if (!"Junior".equalsIgnoreCase(ruolo)) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore",
+                        "L'utente " + nomeJunior + " non è uno Junior.");
+                return;
+            }
+
+            apriFinestraMonitoraggio(nomeJunior);
+        });
+    }
+
+    private void apriFinestraMonitoraggio(String nomeJunior) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/financestep/monitora_transazioni.fxml"));
+            Parent root = loader.load();
+
+            MonitoraTransazioniController controller = loader.getController();
+            controller.caricaTransazioniDi(nomeJunior);
+
+            Stage stage = new Stage();
+            stage.setTitle("Transazioni di " + nomeJunior);
+            stage.setScene(new Scene(root));
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore", "Impossibile aprire la finestra di monitoraggio.");
+        }
+    }
+
+    /* Finestra per Avvisi */
     private void mostraAvviso(javafx.scene.control.Alert.AlertType tipo, String titolo, String messaggio) {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(tipo);
         alert.setTitle(titolo);

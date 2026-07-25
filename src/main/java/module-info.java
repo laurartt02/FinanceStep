@@ -2,6 +2,7 @@ module com.example.financestep {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
+    requires java.prefs;
 
 
     opens com.example.financestep to javafx.fxml;

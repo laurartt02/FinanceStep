@@ -185,6 +185,7 @@
                             <children>
                                 <Button fx:id="btnNuovoCompito" mnemonicParsing="false" onAction="#apriNuovoTask" text="+ Nuovo Compito" visible="false" />
                                 <Button fx:id="btnNuovaRichiesta" mnemonicParsing="false" onAction="#apriNuovaRichiesta" text="+ Nuova Richiesta" visible="false" />
+                                <Button fx:id="btnMonitoraJunior" mnemonicParsing="false" onAction="#apriMonitoraJunior" text="Monitora Transazioni di uno Junior" visible="false" />
                             </children>
                         </StackPane>
                     </children>

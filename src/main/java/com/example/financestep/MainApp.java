@@ -13,8 +13,8 @@ public class MainApp extends Application {
         // 1. Inizializza il file del Database SQLite e crea le tabelle se non esistono
         DatabaseManager.inizializzaDatabase();
 
-        // 2. Caricamento della schermata iniziale (es. Login)
-        FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("login.fxml"));
+        // 2. Caricamento della schermata iniziale (Auth)
+        FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("auth.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("FinanceStep");
         stage.setScene(scene);
