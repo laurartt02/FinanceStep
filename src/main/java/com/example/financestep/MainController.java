@@ -10,7 +10,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -153,7 +156,8 @@ public class MainController {
         lblObiettivo.setText(String.format("%.2f", salvadanaioCorrente.getSommaTarget()).replace(",", "."));
     }
 
-    private void aggiornaListaTransazioni(){
+    private void aggiornaListaTransazioni() {
+        listaTransazioni.sort(java.util.Comparator.comparing(Transazione::getData).reversed());
         tableTransazioni.setItems(listaTransazioni);
     }
 
@@ -169,6 +173,7 @@ public class MainController {
         // 2. Filtro Dati per Tabella Compiti
         if (isTutor) {
             // Il Tutor vede TUTTI i compiti assegnati a qualunque utente
+            listaTask.sort(java.util.Comparator.comparing(Task::getScadenza).reversed());
             tableCompiti.setItems(listaTask);
         } else if (utenteCorrente != null) {
             // Junior vede SOLO i compiti indirizzati specificamente a lui
@@ -178,6 +183,7 @@ public class MainController {
                     compitiJunior.add(t);
                 }
             }
+            listaTask.sort(java.util.Comparator.comparing(Task::getScadenza).reversed());
             tableCompiti.setItems(compitiJunior);
         }
     }
@@ -193,6 +199,7 @@ public class MainController {
         // 2. Filtro dati
         if (isTutor) {
             // Il Tutor vede TUTTE le richieste inviate da chiunque
+            listaRichieste.sort(java.util.Comparator.comparing(RichiestaExtra::getData).reversed());
             tableRichieste.setItems(listaRichieste);
         } else if (utenteCorrente != null) {
             // Lo Junior vede SOLO le proprie richieste
@@ -202,6 +209,7 @@ public class MainController {
                     richiesteJunior.add(r);
                 }
             }
+            listaRichieste.sort(java.util.Comparator.comparing(RichiestaExtra::getData).reversed());
             tableRichieste.setItems(richiesteJunior);
         }
     }
@@ -446,7 +454,6 @@ public class MainController {
         );
 
 
-
         // CONFIGURAZIONE TABELLA TRANSAZIONI
 
         // Inizializza la lista per la tabella
@@ -482,6 +489,7 @@ public class MainController {
             );
 
             tableCompiti.setItems(listaTask);
+
         }
 
         // Tasto INVIO sulla tabella compiti per contrassegnare come completato
@@ -527,6 +535,7 @@ public class MainController {
                     new SimpleStringProperty(cellData.getValue().getStato()));
 
             tableRichieste.setItems(listaRichieste);
+
         }
 
         // Tasto INVIO sulla tabella richieste per approvare / confermare
@@ -564,7 +573,6 @@ public class MainController {
                 }
             });
         }
-
 
     }
 

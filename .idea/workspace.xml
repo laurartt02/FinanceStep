@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3518af70-d4a8-460e-aeb8-49bb0615295c" name="Changes" comment="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;">
+    <list default="true" id="3518af70-d4a8-460e-aeb8-49bb0615295c" name="Changes" comment="Miglioramenti: Bottone &quot;Edit &gt; Annulla Selezione&quot; del menu bar abilitato anche per le righe delle tabelle Compiti e Richieste + Label del Saldo Portafoglio, Salvadanaio e Obiettivo resi persistenti ad ogni modifica e ad ogni nuova apertura dell'app">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Salvadanaio.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Salvadanaio.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,14 +40,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="MainApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.example.financestep.MainApp" />
@@ -101,7 +98,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784936343416</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Miglioramenti: Bottone &quot;Edit &gt; Annulla Selezione&quot; del menu bar abilitato anche per le righe delle tabelle Compiti e Richieste + Label del Saldo Portafoglio, Salvadanaio e Obiettivo resi persistenti ad ogni modifica e ad ogni nuova apertura dell'app">
+      <created>1784945616318</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1784945616318</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -125,6 +129,7 @@
     <MESSAGE value="Primo Commit del mio progetto FinanceStep" />
     <MESSAGE value="Secondo Commit del mio progetto FinanceStep" />
     <MESSAGE value="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;" />
-    <option name="LAST_COMMIT_MESSAGE" value="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;" />
+    <MESSAGE value="Miglioramenti: Bottone &quot;Edit &gt; Annulla Selezione&quot; del menu bar abilitato anche per le righe delle tabelle Compiti e Richieste + Label del Saldo Portafoglio, Salvadanaio e Obiettivo resi persistenti ad ogni modifica e ad ogni nuova apertura dell'app" />
+    <option name="LAST_COMMIT_MESSAGE" value="Miglioramenti: Bottone &quot;Edit &gt; Annulla Selezione&quot; del menu bar abilitato anche per le righe delle tabelle Compiti e Richieste + Label del Saldo Portafoglio, Salvadanaio e Obiettivo resi persistenti ad ogni modifica e ad ogni nuova apertura dell'app" />
   </component>
 </project>
