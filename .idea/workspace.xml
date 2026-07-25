@@ -4,16 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3518af70-d4a8-460e-aeb8-49bb0615295c" name="Changes" comment="Secondo Commit del mio progetto FinanceStep">
+    <list default="true" id="3518af70-d4a8-460e-aeb8-49bb0615295c" name="Changes" comment="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/LoginController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/LoginController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Task.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Tutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Tutor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Junior.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/guida.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/guida.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/nuovo_task.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/nuovo_task.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Salvadanaio.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Salvadanaio.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,7 +47,8 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true"
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
   <component name="RunManager">
@@ -97,7 +94,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784927072408</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;">
+      <created>1784936343416</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1784936343416</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -120,6 +124,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Primo Commit del mio progetto FinanceStep" />
     <MESSAGE value="Secondo Commit del mio progetto FinanceStep" />
-    <option name="LAST_COMMIT_MESSAGE" value="Secondo Commit del mio progetto FinanceStep" />
+    <MESSAGE value="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;" />
   </component>
 </project>

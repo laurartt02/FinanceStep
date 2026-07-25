@@ -10,10 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -22,6 +19,8 @@ import java.time.LocalDate;
 public class MainController {
 
     private Persona utenteCorrente;
+
+    private Salvadanaio salvadanaioCorrente;
 
     @FXML
     private Label lblPersonaCorrente;
@@ -45,6 +44,7 @@ public class MainController {
     @FXML private javafx.scene.control.MenuItem menuSave;
     @FXML private javafx.scene.control.MenuItem menuReset;
     @FXML private javafx.scene.control.MenuItem menuEditDelete;
+    @FXML private MenuItem menuEditDeseleziona;
 
     // Tabella Transazioni
     @FXML
@@ -103,6 +103,12 @@ public class MainController {
         // Aggiorna la visibilità dei permessi della MenuBar
         aggiornaPermessiUI(isTutor);
 
+        // Imposta il valore del Salvadanaio
+        salvadanaioCorrente = DatabaseManager.caricaSalvadanaio(utenteCorrente.getUsername());
+        if (salvadanaioCorrente == null) {
+            salvadanaioCorrente = new Salvadanaio("Obiettivo", 0.0);
+        }
+
         // Lista delle transazioni da memorizzare
         listaTransazioni = FXCollections.observableArrayList(
                 DatabaseManager.caricaTransazioni(utenteCorrente.getUsername())
@@ -114,6 +120,11 @@ public class MainController {
 
         // Filtro richieste in base all'utente
         aggiornaListaRichieste();
+
+        aggiornaSaldoPortafoglio();
+
+        aggiornaVisteSalvadanaio();
+        System.out.println(">>> DEBUG Salvadanaio caricato: obiettivo=" + salvadanaioCorrente.getSommaTarget() + " versato=" + salvadanaioCorrente.getSommaVersata());
 
     }
 
@@ -135,6 +146,11 @@ public class MainController {
             menuEditDelete.setDisable(!isTutor);
             menuEditDelete.setVisible(isTutor); // Nascosto agli Junior
         }
+    }
+
+    private void aggiornaVisteSalvadanaio() {
+        lblSalvadanaio.setText(String.format("%.2f", salvadanaioCorrente.getSommaVersata()).replace(",", "."));
+        lblObiettivo.setText(String.format("%.2f", salvadanaioCorrente.getSommaTarget()).replace(",", "."));
     }
 
     private void aggiornaListaTransazioni(){
@@ -336,8 +352,10 @@ public class MainController {
 
     @FXML
     private void gestisciDeseleziona() {
-        // Pulisce la selezione attiva nella tabella
+        // Pulisce la selezione attiva nella tabelle relative (Transazioni, Compiti e Richieste)
         tableTransazioni.getSelectionModel().clearSelection();
+        tableCompiti.getSelectionModel().clearSelection();
+        tableRichieste.getSelectionModel().clearSelection();
         System.out.println("Selezione annullata.");
     }
 
@@ -417,6 +435,17 @@ public class MainController {
         lblSaldoPortafoglio.setText("0.00");
         lblSalvadanaio.setText("0.00");
         lblObiettivo.setText("0.00");
+
+        /* Quanto un elemento di una tabella non viene selezionato
+        il pulsante "Annulla Selezione" di Edit viene nascosto
+         */
+        menuEditDeseleziona.disableProperty().bind(
+                tableTransazioni.getSelectionModel().selectedItemProperty().isNull()
+                        .and(tableCompiti.getSelectionModel().selectedItemProperty().isNull())
+                        .and(tableRichieste.getSelectionModel().selectedItemProperty().isNull())
+        );
+
+
 
         // CONFIGURAZIONE TABELLA TRANSAZIONI
 
@@ -589,6 +618,133 @@ public class MainController {
         if (btnNuovaRichiesta != null) btnNuovaRichiesta.setVisible(isJunior);
     }
 
+    // Gestione Salvadanaio
+
+    @FXML
+    private void modificaObiettivo() {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        dialog.setTitle("Modifica Obiettivo");
+        dialog.setHeaderText("Inserisci il nuovo obiettivo per il salvadanaio:");
+        dialog.setContentText("Importo (€):");
+
+        dialog.showAndWait().ifPresent(risultato -> {
+            try {
+                double nuovoObiettivo = Double.parseDouble(risultato.replace(",", "."));
+                if (nuovoObiettivo < 0) {
+                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Attenzione", "L'obiettivo non può essere negativo.");
+                    return;
+                }
+                salvadanaioCorrente.setSommaTarget(nuovoObiettivo);
+                aggiornaVisteSalvadanaio();
+
+                // Salvataggio nel DB
+                DatabaseManager.salvaSalvadanaio(salvadanaioCorrente, utenteCorrente.getUsername());
+                System.out.println(">>> DEBUG Salvataggio eseguito per: " + utenteCorrente.getUsername());
+
+                controllaObiettivoRaggiunto();
+            } catch (NumberFormatException e) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore Formato", "Inserisci una cifra numerica valida.");
+            }
+        });
+    }
+
+    @FXML
+    private void versaNelSalvadanaio() {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        dialog.setTitle("Versa nel Salvadanaio");
+        dialog.setHeaderText("Sposta risorse dal Portafoglio al Salvadanaio");
+        dialog.setContentText("Importo (€):");
+
+        dialog.showAndWait().ifPresent(risultato -> {
+            try {
+                double versamento = Double.parseDouble(risultato.replace(",", "."));
+                if (versamento <= 0) {
+                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Attenzione", "Inserisci un importo maggiore di zero.");
+                    return;
+                }
+
+                double saldoPortafoglio = Double.parseDouble(lblSaldoPortafoglio.getText().replace(",", "."));
+
+                // CONTROLLO COPERTURA: Hai abbastanza disponibilità nel portafoglio?
+                if (versamento <= saldoPortafoglio) {
+                    salvadanaioCorrente.versaQuota(versamento);
+                    aggiornaVisteSalvadanaio();
+
+                    Spesa s = new Spesa(-versamento, LocalDate.now(), "Versamento in Salvadanaio", "Risparmi");
+                    tableTransazioni.getItems().add(s);
+
+                    // Persistenza: transazione + salvadanaio aggiornato
+                    DatabaseManager.salvaTransazione(s, utenteCorrente.getUsername());
+                    DatabaseManager.salvaSalvadanaio(salvadanaioCorrente, utenteCorrente.getUsername());
+
+                    aggiornaSaldoPortafoglio();
+                    controllaObiettivoRaggiunto();
+                } else {
+                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Fondi Insufficienti", "Non hai abbastanza soldi nel portafoglio per effettuare questo versamento.");
+                }
+            } catch (NumberFormatException e) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore Formato", "Inserisci una cifra numerica valida.");
+            }
+        });
+    }
+
+    @FXML
+    private void prelevaDalSalvadanaio() {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        dialog.setTitle("Preleva dal Salvadanaio");
+        dialog.setHeaderText("Sposta risorse dal Salvadanaio al Portafoglio");
+        dialog.setContentText("Importo (€):");
+
+        dialog.showAndWait().ifPresent(risultato -> {
+            try {
+                double prelievo = Double.parseDouble(risultato.replace(",", "."));
+                if (prelievo <= 0) {
+                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Attenzione", "Inserisci un importo maggiore di zero.");
+                    return;
+                }
+
+                // CONTROLLO COPERTURA: Ci sono abbastanza soldi nel salvadanaio?
+                if (prelievo <= salvadanaioCorrente.getSommaVersata()) {
+                    salvadanaioCorrente.setSommaVersata(salvadanaioCorrente.getSommaVersata() - prelievo);
+                    aggiornaVisteSalvadanaio();
+
+                    Entrata e = new Entrata(prelievo, LocalDate.now(), "Prelievo da Salvadanaio", "Risparmi");
+                    tableTransazioni.getItems().add(e);
+
+                    // Persistenza: transazione + salvadanaio aggiornato
+                    DatabaseManager.salvaTransazione(e, utenteCorrente.getUsername());
+                    DatabaseManager.salvaSalvadanaio(salvadanaioCorrente, utenteCorrente.getUsername());
+
+                    aggiornaSaldoPortafoglio();
+                } else {
+                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Fondi Insufficienti", "Non hai abbastanza fondi nel salvadanaio.");
+                }
+            } catch (NumberFormatException e) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore Formato", "Inserisci una cifra numerica valida.");
+            }
+        });
+    }
+
+    private void controllaObiettivoRaggiunto() {
+        try {
+
+            double saldo = salvadanaioCorrente.getSommaVersata();
+            double obiettivo = salvadanaioCorrente.getSommaTarget();
+
+            if (obiettivo > 0 && saldo >= obiettivo) {
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+                alert.setTitle("Obiettivo Raggiunto! 🎉");
+                alert.setHeaderText("Complimenti!");
+                alert.setContentText("Hai raggiunto o superato il tuo obiettivo di " + String.format("%.2f", obiettivo) + " €!");
+                alert.showAndWait();
+            }
+        } catch (NumberFormatException e) {
+            // Ignora eventuali errori di conversione temporanei
+        }
+    }
+
+    // Creazione di una nuova Transazione, Compito o Richiesta
+
     @FXML
     public void apriNuovaTransizione() {
         System.out.println("Hai cliccato su Nuova Transazione!");
@@ -620,131 +776,6 @@ public class MainController {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    // Gestione Salvadanaio
-
-    @FXML
-    private void modificaObiettivo() {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
-        dialog.setTitle("Modifica Obiettivo");
-        dialog.setHeaderText("Inserisci il nuovo obiettivo per il salvadanaio:");
-        dialog.setContentText("Importo (€):");
-
-        dialog.showAndWait().ifPresent(risultato -> {
-            try {
-                double nuovoObiettivo = Double.parseDouble(risultato.replace(",", "."));
-                if (nuovoObiettivo < 0) {
-                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Attenzione", "L'obiettivo non può essere negativo.");
-                    return;
-                }
-                lblObiettivo.setText(String.format("%.2f", nuovoObiettivo).replace(",", "."));
-                controllaObiettivoRaggiunto();
-            } catch (NumberFormatException e) {
-                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore Formato", "Inserisci una cifra numerica valida.");
-            }
-        });
-    }
-
-    @FXML
-    private void versaNelSalvadanaio() {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
-        dialog.setTitle("Versa nel Salvadanaio");
-        dialog.setHeaderText("Sposta risorse dal Portafoglio al Salvadanaio");
-        dialog.setContentText("Importo (€):");
-
-        dialog.showAndWait().ifPresent(risultato -> {
-            try {
-                double versamento = Double.parseDouble(risultato.replace(",", "."));
-                if (versamento <= 0) {
-                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Attenzione", "Inserisci un importo maggiore di zero.");
-                    return;
-                }
-
-                double saldoSalvadanaio = Double.parseDouble(lblSalvadanaio.getText().replace(",", "."));
-                double saldoPortafoglio = Double.parseDouble(lblSaldoPortafoglio.getText().replace(",", "."));
-
-                // CONTROLLO COPERTURA: Hai abbastanza disponibilità nel portafoglio?
-                if (versamento <= saldoPortafoglio) {
-                    // 1. Il Salvadanaio AUMENTA (+)
-                    double nuovoSaldoSalv = saldoSalvadanaio + versamento;
-                    lblSalvadanaio.setText(String.format("%.2f", nuovoSaldoSalv).replace(",", "."));
-
-                    // 2. Registriamo una SPESA con segno NEGATIVO (-) per far DIMINUIRE il Portafoglio
-                    Spesa s = new Spesa(-versamento, LocalDate.now(), "Versamento in Salvadanaio", "Risparmi");
-                    tableTransazioni.getItems().add(s);
-
-                    // 3. Ricalcoliamo il Portafoglio (ora farà 1200 - 200 = 1000)
-                    aggiornaSaldoPortafoglio();
-
-                    controllaObiettivoRaggiunto();
-                } else {
-                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Fondi Insufficienti", "Non hai abbastanza soldi nel portafoglio per effettuare questo versamento.");
-                }
-            } catch (NumberFormatException e) {
-                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore Formato", "Inserisci una cifra numerica valida.");
-            }
-        });
-    }
-
-    @FXML
-    private void prelevaDalSalvadanaio() {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
-        dialog.setTitle("Preleva dal Salvadanaio");
-        dialog.setHeaderText("Sposta risorse dal Salvadanaio al Portafoglio");
-        dialog.setContentText("Importo (€):");
-
-        dialog.showAndWait().ifPresent(risultato -> {
-            try {
-                double prelievo = Double.parseDouble(risultato.replace(",", "."));
-                if (prelievo <= 0) {
-                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Attenzione", "Inserisci un importo maggiore di zero.");
-                    return;
-                }
-
-                double saldoSalvadanaio = Double.parseDouble(lblSalvadanaio.getText().replace(",", "."));
-                double saldoPortafoglio = Double.parseDouble(lblSaldoPortafoglio.getText().replace(",", "."));
-
-                // CONTROLLO COPERTURA: Ci sono abbastanza soldi nel salvadanaio?
-                if (prelievo <= saldoSalvadanaio) {
-                    // 1. Diminuisce il Salvadanaio
-                    double nuovoSaldoSalv = saldoSalvadanaio - prelievo;
-                    lblSalvadanaio.setText(String.format("%.2f", nuovoSaldoSalv).replace(",", "."));
-
-                    // 2. Aumenta il Portafoglio
-                    double nuovoSaldoPort = saldoPortafoglio + prelievo;
-                    lblSaldoPortafoglio.setText(String.format("%.2f", nuovoSaldoPort).replace(",", "."));
-
-                    // 3. Registra un'ENTRATA per il portafoglio
-                    Entrata e = new Entrata(prelievo, LocalDate.now(), "Prelievo da Salvadanaio", "Risparmi");
-                    tableTransazioni.getItems().add(e);
-
-                    aggiornaSaldoPortafoglio();
-
-                } else {
-                    mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Fondi Insufficienti", "Non hai abbastanza fondi nel salvadanaio.");
-                }
-            } catch (NumberFormatException e) {
-                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore Formato", "Inserisci una cifra numerica valida.");
-            }
-        });
-    }
-
-    private void controllaObiettivoRaggiunto() {
-        try {
-            double saldo = Double.parseDouble(lblSalvadanaio.getText().replace(",", "."));
-            double obiettivo = Double.parseDouble(lblObiettivo.getText().replace(",", "."));
-
-            if (obiettivo > 0 && saldo >= obiettivo) {
-                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-                alert.setTitle("Obiettivo Raggiunto! 🎉");
-                alert.setHeaderText("Complimenti!");
-                alert.setContentText("Hai raggiunto o superato il tuo obiettivo di " + String.format("%.2f", obiettivo) + " €!");
-                alert.showAndWait();
-            }
-        } catch (NumberFormatException e) {
-            // Ignora eventuali errori di conversione temporanei
         }
     }
 
@@ -845,6 +876,7 @@ public class MainController {
         }
     }
 
+    // Finestra per Avvisi
     private void mostraAvviso(javafx.scene.control.Alert.AlertType tipo, String titolo, String messaggio) {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(tipo);
         alert.setTitle(titolo);

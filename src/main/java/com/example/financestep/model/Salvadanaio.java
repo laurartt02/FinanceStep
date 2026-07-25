@@ -2,8 +2,8 @@ package com.example.financestep.model;
 
 public class Salvadanaio {
     private String nomeObiettivo;
-    private double sommaTarget;
-    private double sommaVersata;
+    private double sommaTarget; // cifra dell'obiettivo
+    private double sommaVersata; // cifra dei soldi versati nel salvadanaio
 
     public Salvadanaio(String nomeObiettivo, double sommaTarget) {
         this.nomeObiettivo = nomeObiettivo;

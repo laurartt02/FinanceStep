@@ -24,6 +24,13 @@ public class DatabaseManager {
                 + "ruolo TEXT NOT NULL" // "Junior" o "Tutor"
                 + ");";
 
+        String sqlSalvadanai = "CREATE TABLE IF NOT EXISTS salvadanaio (\n" +
+                "    proprietario TEXT PRIMARY KEY,\n" +
+                "    nome_obiettivo TEXT,\n" +
+                "    somma_target REAL NOT NULL,\n" +
+                "    somma_versata REAL NOT NULL\n" +
+                ");";
+
         String sqlTransazioni = "CREATE TABLE IF NOT EXISTS transazioni ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "data TEXT NOT NULL, "
@@ -56,6 +63,7 @@ public class DatabaseManager {
              Statement stmt = conn.createStatement()) {
 
             stmt.execute(sqlUtenti);
+            stmt.execute(sqlSalvadanai);
             stmt.execute(sqlTransazioni);
             stmt.execute(sqlTask);
             stmt.execute(sqlRichieste);
@@ -66,12 +74,56 @@ public class DatabaseManager {
         }
     }
 
+    // --- OPERAZIONI PORTAFOGLIO ---
+
+    // --- OPERAZIONI SALVADANAIO ---
+
+    public static void salvaSalvadanaio(Salvadanaio s, String proprietario) {
+        String sql = "INSERT OR REPLACE INTO salvadanaio(proprietario, nome_obiettivo, somma_target, somma_versata) VALUES(?,?,?,?)";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, proprietario);
+            pstmt.setString(2, s.getNomeObiettivo());
+            pstmt.setDouble(3, s.getSommaTarget());
+            pstmt.setDouble(4, s.getSommaVersata());
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Salvadanaio caricaSalvadanaio(String proprietario) {
+        String sql = "SELECT * FROM salvadanaio WHERE proprietario = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, proprietario);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Salvadanaio s = new Salvadanaio(
+                            rs.getString("nome_obiettivo"),
+                            rs.getDouble("somma_target")
+                    );
+                    s.setSommaVersata(rs.getDouble("somma_versata"));
+                    return s;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // nessun salvadanaio ancora creato per questo utente
+    }
+
     // --- OPERAZIONI TRANSAZIONI ---
 
     public static void salvaTransazione(Transazione t, String proprietario) {
         String sql = "INSERT INTO transazioni(data, descrizione, categoria, tipo, importo, proprietario) VALUES(?,?,?,?,?,?)";
         try (Connection conn = getConnection();
-        PreparedStatement pstmt=conn.prepareStatement(sql)){
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, t.getData().toString());
             pstmt.setString(2, t.getDescrizione());
 

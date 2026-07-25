@@ -39,7 +39,7 @@
                             <items>
                                 <MenuItem mnemonicParsing="false" onAction="#gestisciEditTransazione" text="Modifica Selezionata..." />
                                 <MenuItem mnemonicParsing="false" onAction="#gestisciFiltra" text="Filtra Transazioni..." />
-                                <MenuItem mnemonicParsing="false" onAction="#gestisciDeseleziona" text="Annulla Selezione" />
+                                <MenuItem fx:id="menuEditDeseleziona" mnemonicParsing="false" onAction="#gestisciDeseleziona" text="Annulla Selezione" />
                                 <SeparatorMenuItem />
                                 <MenuItem fx:id="menuEditDelete" mnemonicParsing="false" onAction="#gestisciDelete" text="Elimina Selezionata" />
                             </items>
