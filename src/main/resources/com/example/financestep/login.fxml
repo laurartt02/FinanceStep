@@ -5,16 +5,14 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.scene.layout.StackPane?>
-<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.financestep.controller.LoginController">
+<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.financestep.controller.LoginController">
 
     <padding>
-        <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
     </padding>
 
     <Label text="FinanceStep Login">
@@ -32,14 +30,11 @@
         <Label text="Password:" />
         <StackPane>
             <PasswordField fx:id="txtPassword" promptText="Inserisci la password..." />
-            <TextField fx:id="txtPasswordVisibile" promptText="Inserisci la password..." visible="false" managed="false" />
-            <Button fx:id="btnTogglePassword" text="👁"
-                    onAction="#toggleMostraPassword"
-                    StackPane.alignment="CENTER_RIGHT"
-                    style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0 10 0 0;" />
+            <TextField fx:id="txtPasswordVisibile" managed="false" promptText="Inserisci la password..." visible="false" />
+            <Button fx:id="btnTogglePassword" onAction="#toggleMostraPassword" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0 10 0 0;" text="👁" StackPane.alignment="CENTER_RIGHT" />
         </StackPane>
     </VBox>
 
-    <Button text="Accedi" onAction="#gestisciLogin" maxWidth="Infinity" style="-fx-font-weight: bold;" />
+    <Button defaultButton="true" maxWidth="Infinity" onAction="#gestisciLogin" style="-fx-font-weight: bold;" text="Accedi" />
 
 </VBox>

@@ -43,6 +43,8 @@ public class MainController {
     private Label lblObiettivo;
     @FXML
     private Label badgeCompiti; // pallino di notifica Compiti da fare
+    @FXML
+    private Label badgeRichieste;
 
     @FXML private javafx.scene.control.Button btnModificaObiettivo;
     @FXML private javafx.scene.control.Button btnNuovoCompito;
@@ -132,17 +134,19 @@ public class MainController {
         // Filtro compiti/task in base all'utente
         aggiornaListaCompiti();
 
-        // Notifica "Nuovo Compito" allo Junior, mostrata una sola volta per x task creati
         if (!isTutor) {
             javafx.application.Platform.runLater(() -> {
                 mostraNotificheNuoviCompiti();
                 mostraNotifichePremiRicevuti();
+                mostraNotificheEsitoRichieste();
             });
         }
 
-        // Notifica "Pagare lo Junior che ha completato il Task"
         if (isTutor) {
-            javafx.application.Platform.runLater(this::mostraNotifichePagamentiTask);
+            javafx.application.Platform.runLater(() -> {
+                mostraNotifichePagamentiTask();
+                mostraNotificheRichiesteRicevute();
+            });
         }
 
         // Filtro richieste in base all'utente
@@ -190,7 +194,6 @@ public class MainController {
     }
 
     private void aggiornaListaTransazioni() {
-        listaTransazioni.sort(java.util.Comparator.comparing(Transazione::getData).reversed());
         tableTransazioni.setItems(listaTransazioni);
     }
 
@@ -212,7 +215,7 @@ public class MainController {
         // 3. Filtro Dati per Tabella Compiti
         if (isTutor) {
             // Il Tutor vede TUTTI i compiti assegnati a qualunque utente
-            listaTask.sort(java.util.Comparator.comparing(Task::getScadenza).reversed());
+            listaTask.sort(java.util.Comparator.comparingInt(Task::getId).reversed());
             tableCompiti.setItems(listaTask);
         } else if (utenteCorrente != null) {
             // Junior vede SOLO i compiti indirizzati specificamente a lui
@@ -222,7 +225,7 @@ public class MainController {
                     compitiJunior.add(t);
                 }
             }
-            listaTask.sort(java.util.Comparator.comparing(Task::getScadenza).reversed());
+            compitiJunior.sort(java.util.Comparator.comparingInt(Task::getId).reversed());
             tableCompiti.setItems(compitiJunior);
         }
         aggiornaBadgeCompiti();
@@ -348,6 +351,40 @@ public class MainController {
         DatabaseManager.aggiornaUltimoIdPremioNotificato(utenteCorrente.getUsername(), massimoId);
     }
 
+    private void mostraNotifichePagamentiTask() {
+        List<Task> daPagare = new java.util.ArrayList<>();
+        for (Task t : listaTask) {
+            if (t.getMittente() != null
+                    && t.getMittente().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && t.getStato() == Task.StatoTask.COMPLETATO) {
+                daPagare.add(t);
+            }
+        }
+        daPagare.sort(java.util.Comparator.comparingInt(Task::getId));
+
+        for (Task t : daPagare) {
+            chiediInvioPremio(t);
+        }
+    }
+
+    private void mostraNotificheRichiesteRicevute() {
+        List<RichiestaExtra> daGestire = new java.util.ArrayList<>();
+        for (RichiestaExtra r : listaRichieste) {
+            if (r.getConcedente() != null
+                    && r.getConcedente().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && r.getStato() == RichiestaExtra.StatoRichiesta.IN_ATTESA) {
+                daGestire.add(r);
+            }
+        }
+        daGestire.sort(java.util.Comparator.comparingInt(RichiestaExtra::getId));
+
+        for (RichiestaExtra r : daGestire) {
+            chiediGestioneRichiesta(r);
+        }
+    }
+
+
+
     private void aggiornaListaRichieste() {
         boolean isTutor = (utenteCorrente instanceof Tutor);
 
@@ -364,7 +401,7 @@ public class MainController {
         // 3. Filtro dati
         if (isTutor) {
             // Il Tutor vede TUTTE le richieste inviate da chiunque
-            listaRichieste.sort(java.util.Comparator.comparing(RichiestaExtra::getData).reversed());
+            listaRichieste.sort(java.util.Comparator.comparingInt(RichiestaExtra::getId).reversed());
             tableRichieste.setItems(listaRichieste);
         } else if (utenteCorrente != null) {
             // Lo Junior vede SOLO le proprie richieste
@@ -374,8 +411,73 @@ public class MainController {
                     richiesteJunior.add(r);
                 }
             }
-            listaRichieste.sort(java.util.Comparator.comparing(RichiestaExtra::getData).reversed());
+            richiesteJunior.sort(java.util.Comparator.comparingInt(RichiestaExtra::getId).reversed());
             tableRichieste.setItems(richiesteJunior);
+        }
+        aggiornaBadgeRichieste();
+    }
+
+    private void aggiornaBadgeRichieste() {
+        if (badgeRichieste == null || utenteCorrente == null) {
+            if (badgeRichieste != null) badgeRichieste.setVisible(false);
+            return;
+        }
+
+        boolean isTutor = (utenteCorrente instanceof Tutor);
+        if (!isTutor) {
+            badgeRichieste.setVisible(false);
+            return;
+        }
+
+        int conteggio = 0;
+        for (RichiestaExtra r : listaRichieste) {
+            if (r.getConcedente() != null
+                    && r.getConcedente().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && r.getStato() == RichiestaExtra.StatoRichiesta.IN_ATTESA) {
+                conteggio++;
+            }
+        }
+
+        if (conteggio > 0) {
+            badgeRichieste.setText(String.valueOf(conteggio));
+            badgeRichieste.setVisible(true);
+        } else {
+            badgeRichieste.setVisible(false);
+        }
+    }
+
+    private void mostraNotificheEsitoRichieste() {
+        int ultimoNotificato = DatabaseManager.getUltimoIdRichiestaNotificata(utenteCorrente.getUsername());
+        int massimoId = ultimoNotificato;
+
+        List<RichiestaExtra> risolte = new java.util.ArrayList<>();
+        for (RichiestaExtra r : listaRichieste) {
+            if (r.getRichiedente() != null
+                    && r.getRichiedente().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && r.getStato() != RichiestaExtra.StatoRichiesta.IN_ATTESA
+                    && r.getId() > ultimoNotificato) {
+                risolte.add(r);
+            }
+        }
+
+        risolte.sort(java.util.Comparator.comparingInt(RichiestaExtra::getId));
+
+        for (RichiestaExtra r : risolte) {
+            boolean accettata = (r.getStato() == RichiestaExtra.StatoRichiesta.APPROVATA);
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle(accettata ? "Richiesta Accettata" : "Richiesta Rifiutata");
+            alert.setContentText("Richiesta per '" + r.getMotivazione() + "' "
+                    + (accettata ? "accettata 🙂" : "rifiutata ☹")
+                    + (accettata ? ("\nImporto accreditato: €" + String.format("%.2f", r.getImporto())) : ""));
+            alert.showAndWait();
+
+            if (r.getId() > massimoId) {
+                massimoId = r.getId();
+            }
+        }
+
+        if (massimoId > ultimoNotificato) {
+            DatabaseManager.aggiornaUltimoIdRichiestaNotificata(utenteCorrente.getUsername(), massimoId);
         }
     }
 
@@ -736,37 +838,23 @@ public class MainController {
         }
 
         // Tasto INVIO sulla tabella richieste per approvare / confermare
-                if (tableRichieste != null) {
-                    tableRichieste.setOnKeyPressed(event -> {
-                        if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
-                            RichiestaExtra selezionata = tableRichieste.getSelectionModel().getSelectedItem();
+        if (tableRichieste != null) {
+            tableRichieste.setOnKeyPressed(event -> {
+                if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                    RichiestaExtra selezionata = tableRichieste.getSelectionModel().getSelectedItem();
+                    if (selezionata == null) return;
 
-                        if (selezionata != null) {
-                            // Se è il Tutor a premere INVIO, approva la richiesta
-                            if (utenteCorrente instanceof Tutor) {
-                                selezionata.setStato(RichiestaExtra.StatoRichiesta.APPROVATA);
-
-                                // AGGIORNAMENTO SU DATABASE
-                                DatabaseManager.aggiornaStatoRichiesta(selezionata);
-
-                                tableRichieste.refresh();
-
-                                mostraAvviso(
-                                        javafx.scene.control.Alert.AlertType.INFORMATION,
-                                        "Richiesta Approvata!",
-                                        "La richiesta per '" + selezionata.getMotivazione() + "' di € " +
-                                                String.format("%.2f", selezionata.getImporto()) + " è stata approvata."
-                                );
-                            }
-                            // Se è lo Junior, invia/notifica la richiesta al Tutor
-                            else {
-                                mostraAvviso(
-                                        javafx.scene.control.Alert.AlertType.INFORMATION,
-                                        "Richiesta Inviata!",
-                                        "La richiesta per '" + selezionata.getMotivazione() + "' è in attesa di approvazione da parte del Tutor."
-                                );
-                            }
+                    if (utenteCorrente instanceof Tutor) {
+                        if (selezionata.getStato() == RichiestaExtra.StatoRichiesta.IN_ATTESA) {
+                            chiediGestioneRichiesta(selezionata);
                         }
+                    } else {
+                        mostraAvviso(
+                                javafx.scene.control.Alert.AlertType.INFORMATION,
+                                "Richiesta Inviata!",
+                                "La richiesta per '" + selezionata.getMotivazione() + "' è in attesa di approvazione da parte del Tutor."
+                        );
+                    }
                 }
             });
         }
@@ -885,7 +973,7 @@ public class MainController {
                     aggiornaVisteSalvadanaio();
 
                     Spesa s = new Spesa(-versamento, LocalDate.now(), "Versamento in Salvadanaio", "Risparmi");
-                    tableTransazioni.getItems().add(s);
+                    tableTransazioni.getItems().add(0, s);
 
                     // Persistenza: transazione + salvadanaio aggiornato
                     DatabaseManager.salvaTransazione(s, utenteCorrente.getUsername());
@@ -923,7 +1011,7 @@ public class MainController {
                     aggiornaVisteSalvadanaio();
 
                     Entrata e = new Entrata(prelievo, LocalDate.now(), "Prelievo da Salvadanaio", "Risparmi");
-                    tableTransazioni.getItems().add(e);
+                    tableTransazioni.getItems().add(0, e);
 
                     // Persistenza: transazione + salvadanaio aggiornato
                     DatabaseManager.salvaTransazione(e, utenteCorrente.getUsername());
@@ -970,7 +1058,7 @@ public class MainController {
         // 1. Sottrai il premio dalla fonte scelta
         if (usaPortafoglio) {
             Spesa s = new Spesa(-premio, LocalDate.now(), "Premio task: " + task.getTitolo(), "Compiti");
-            tableTransazioni.getItems().add(s);
+            tableTransazioni.getItems().add(0, s);
             DatabaseManager.salvaTransazione(s, utenteCorrente.getUsername());
             aggiornaListaTransazioni();
             aggiornaSaldoPortafoglio();
@@ -1022,21 +1110,94 @@ public class MainController {
         });
     }
 
-    private void mostraNotifichePagamentiTask() {
-        List<Task> daPagare = new java.util.ArrayList<>();
-        for (Task t : listaTask) {
-            if (t.getMittente() != null
-                    && t.getMittente().equalsIgnoreCase(utenteCorrente.getUsername())
-                    && t.getStato() == Task.StatoTask.COMPLETATO) {
-                daPagare.add(t);
-            }
-        }
-        daPagare.sort(java.util.Comparator.comparingInt(Task::getId));
 
-        for (Task t : daPagare) {
-            chiediInvioPremio(t);
+    // Accetta Richiesta
+    private void accettaRichiesta(RichiestaExtra r) {
+        double saldoPortafoglio;
+        try {
+            saldoPortafoglio = Double.parseDouble(lblSaldoPortafoglio.getText().replace(",", "."));
+        } catch (NumberFormatException e) {
+            saldoPortafoglio = 0.0;
         }
+        double saldoSalvadanaio = salvadanaioCorrente.getSommaVersata();
+        double importo = r.getImporto();
+
+        boolean usaPortafoglio;
+        if (saldoPortafoglio >= saldoSalvadanaio) {
+            if (saldoPortafoglio < importo && saldoSalvadanaio < importo) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Fondi Insufficienti",
+                        "Non hai abbastanza fondi né nel Portafoglio né nel Salvadanaio per accettare questa richiesta.");
+                return;
+            }
+            usaPortafoglio = saldoPortafoglio >= importo;
+        } else {
+            if (saldoPortafoglio < importo && saldoSalvadanaio < importo) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Fondi Insufficienti",
+                        "Non hai abbastanza fondi né nel Portafoglio né nel Salvadanaio per accettare questa richiesta.");
+                return;
+            }
+            usaPortafoglio = !(saldoSalvadanaio >= importo);
+        }
+
+        // 1. Sottrai dalla fonte scelta (Tutor)
+        if (usaPortafoglio) {
+            Spesa s = new Spesa(-importo, LocalDate.now(), "Richiesta extra: " + r.getMotivazione(), "Richieste");
+            tableTransazioni.getItems().add(0, s);
+            DatabaseManager.salvaTransazione(s, utenteCorrente.getUsername());
+            aggiornaListaTransazioni();
+            aggiornaSaldoPortafoglio();
+        } else {
+            salvadanaioCorrente.setSommaVersata(salvadanaioCorrente.getSommaVersata() - importo);
+            DatabaseManager.salvaSalvadanaio(salvadanaioCorrente, utenteCorrente.getUsername());
+            aggiornaVisteSalvadanaio();
+        }
+
+        // 2. Accredita sul Portafoglio dello Junior (non sul Salvadanaio, a differenza del premio task)
+        Entrata entrata = new Entrata(importo, LocalDate.now(), "Richiesta extra accettata: " + r.getMotivazione(), "Richieste");
+        DatabaseManager.salvaTransazione(entrata, r.getRichiedente());
+
+        // 3. Aggiorna stato
+        r.setStato(RichiestaExtra.StatoRichiesta.APPROVATA);
+        DatabaseManager.aggiornaStatoRichiesta(r);
+        tableRichieste.refresh();
+        aggiornaBadgeRichieste();
+
+        mostraAvviso(javafx.scene.control.Alert.AlertType.INFORMATION, "Richiesta Accettata",
+                "Hai accettato la richiesta di " + r.getRichiedente() + " per €" + String.format("%.2f", importo) + ".");
     }
+
+    // Rifiuta Richiesta
+    private void rifiutaRichiesta(RichiestaExtra r) {
+        r.setStato(RichiestaExtra.StatoRichiesta.RIFIUTATA);
+        DatabaseManager.aggiornaStatoRichiesta(r);
+        tableRichieste.refresh();
+        aggiornaBadgeRichieste();
+
+        mostraAvviso(javafx.scene.control.Alert.AlertType.INFORMATION, "Richiesta Rifiutata",
+                "Hai rifiutato la richiesta di " + r.getRichiedente() + ".");
+    }
+
+    private void chiediGestioneRichiesta(RichiestaExtra r) {
+        javafx.scene.control.Alert conferma = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        conferma.setTitle("Nuova Richiesta");
+        conferma.setHeaderText("Richiesta €" + String.format("%.2f", r.getImporto()) + " per '" + r.getMotivazione() + "' da " + r.getRichiedente());
+
+        javafx.scene.control.ButtonType btnAccetta = new javafx.scene.control.ButtonType("Accetta");
+        javafx.scene.control.ButtonType btnRifiuta = new javafx.scene.control.ButtonType("Rifiuta");
+        javafx.scene.control.ButtonType btnRifletti = new javafx.scene.control.ButtonType("Rifletti", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        conferma.getButtonTypes().setAll(btnAccetta, btnRifiuta, btnRifletti);
+
+        conferma.showAndWait().ifPresent(risposta -> {
+            if (risposta == btnAccetta) {
+                accettaRichiesta(r);
+            } else if (risposta == btnRifiuta) {
+                rifiutaRichiesta(r);
+            }
+            // Rifletti: nessuna azione, resta IN_ATTESA
+        });
+    }
+
+
 
     private void controllaObiettivoRaggiunto() {
         try {
@@ -1074,7 +1235,7 @@ public class MainController {
                 DatabaseManager.salvaTransazione(nuovaTransazione, utenteCorrente.getUsername());
 
                 // 2. Aggiunge la transazione alla tabella
-                listaTransazioni.add(nuovaTransazione);
+                listaTransazioni.add(0, nuovaTransazione);
 
                 // 3. Riordina la lista per data (più recente in alto)
                 aggiornaListaTransazioni();

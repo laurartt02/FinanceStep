@@ -147,7 +147,17 @@
                                     </children>
                                 </StackPane>
 
-                                <Button mnemonicParsing="false" onAction="#mostraRichieste" text="Richieste Extra" />
+                                <StackPane>
+                                    <children>
+                                        <Button mnemonicParsing="false" onAction="#mostraRichieste" text="Richieste Extra" />
+                                        <Label fx:id="badgeRichieste"
+                                               text="0"
+                                               visible="false"
+                                               style="-fx-background-color: #e53935; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 1 6 1 6; -fx-font-size: 11px; -fx-font-weight: bold;"
+                                               StackPane.alignment="TOP_RIGHT"
+                                               translateX="8" translateY="-8" />
+                                    </children>
+                                </StackPane>
                             </children>
                         </HBox>
 

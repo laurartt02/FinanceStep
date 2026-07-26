@@ -16,7 +16,7 @@
       <TextField fx:id="txtDescrizione" layoutX="28.0" layoutY="50.0" promptText="Descrizione" />
       <TextField fx:id="txtImporto" layoutX="211.0" layoutY="50.0" promptText="Importo" />
       <TextField fx:id="txtTipo" layoutX="405.0" layoutY="50.0" promptText="Tipo" />
-      <TextField fx:id="txtData" layoutX="28.0" layoutY="94.0" promptText="Data" />
+      <TextField fx:id="txtData" layoutX="28.0" layoutY="94.0" promptText="Data: (Es. AAAA-MM-DD)" />
       <Button fx:id="salvaTransazione" defaultButton="true" layoutX="211.0" layoutY="94.0" mnemonicParsing="false" onAction="#salvaTransazione" text="Salva" />
       <Button fx:id="chiudiFinestra" cancelButton="true" layoutX="286.0" layoutY="94.0" mnemonicParsing="false" onAction="#chiudiFinestra" text="Annulla" />
    </children>
