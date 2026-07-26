@@ -1,30 +1,45 @@
 package com.example.financestep.controller;
 
+import com.example.financestep.DatabaseManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
-import java.util.function.BiConsumer;
-
 public class NuovaRichiestaController {
 
     @FXML private TextField txtImporto;
+    @FXML private TextField txtTutor;
     @FXML private TextArea txtMotivazione;
 
-    // Callback che restituisce (Importo, Motivazione)
-    private BiConsumer<Double, String> onSalvaCallback;
+    // Callback che restituisce (Importo, Concedente/Tutor, Motivazione)
+    public interface RichiestaCallback {
+        void accept(double importo, String concedente, String motivazione);
+    }
+    private RichiestaCallback onSalvaCallback;
 
-    public void setOnSalvaCallback(BiConsumer<Double, String> callback) {
+    public void setOnSalvaCallback(RichiestaCallback callback) {
         this.onSalvaCallback = callback;
     }
 
     @FXML
     private void gestisciSalva() {
         String importoStr = txtImporto.getText().trim();
+        String concedente = txtTutor.getText().trim();
         String motivazione = txtMotivazione.getText().trim();
 
-        if (importoStr.isEmpty() || motivazione.isEmpty()) {
-            mostraAlert("Attenzione", "Compila sia l'importo che la motivazione.");
+        if (importoStr.isEmpty() || concedente.isEmpty() || motivazione.isEmpty()) {
+            mostraAlert("Attenzione", "Compila sia l'importo, sia il concedente che la motivazione.");
+            return;
+        }
+
+        // Verifica che il Tutor scelto esista davvero e sia effettivamente un Tutor
+        String ruolo = DatabaseManager.recuperaRuolo(concedente);
+        if (ruolo == null) {
+            mostraAlert("Errore", "Il Tutor '" + concedente + "' non esiste.");
+            return;
+        }
+        if (!"Tutor".equalsIgnoreCase(ruolo)) {
+            mostraAlert("Errore", "'" + concedente + "' non è un Tutor.");
             return;
         }
 
@@ -36,7 +51,7 @@ public class NuovaRichiestaController {
             }
 
             if (onSalvaCallback != null) {
-                onSalvaCallback.accept(importo, motivazione);
+                onSalvaCallback.accept(importo, concedente, motivazione);
             }
 
             chiudiFinestra();

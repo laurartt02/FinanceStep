@@ -82,6 +82,8 @@ public class MainController {
     @FXML
     private TableColumn<Task, String> colCompitoDestinatario;
     @FXML
+    private TableColumn<Task, String> colCompitoMittente;
+    @FXML
     private TableColumn<Task, String> colCompitoStato;
 
     // Tabella Richieste
@@ -95,6 +97,8 @@ public class MainController {
     private TableColumn<RichiestaExtra, String> colRichiestaMotivazione;
     @FXML
     private TableColumn<RichiestaExtra, String> colRichiestaRichiedente;
+    @FXML
+    private TableColumn<RichiestaExtra, String> colRichiestaConcedente;
     @FXML
     private TableColumn<RichiestaExtra, String> colRichiestaStato;
 
@@ -187,7 +191,13 @@ public class MainController {
             colCompitoDestinatario.setVisible(isTutor);
         }
 
-        // 2. Filtro Dati per Tabella Compiti
+        // 2. Gestione Visibilità Colonna Mittente
+        // Solo lo Junior può vedere a chi è stato assegnato il compito
+        if (colCompitoMittente != null) {
+            colCompitoMittente.setVisible(!isTutor);
+        }
+
+        // 3. Filtro Dati per Tabella Compiti
         if (isTutor) {
             // Il Tutor vede TUTTI i compiti assegnati a qualunque utente
             listaTask.sort(java.util.Comparator.comparing(Task::getScadenza).reversed());
@@ -213,7 +223,12 @@ public class MainController {
             colRichiestaRichiedente.setVisible(isTutor);
         }
 
-        // 2. Filtro dati
+        // 2. Visibilità della colonna Concedente: visibile solo se Junior
+        if (colRichiestaConcedente != null) {
+            colRichiestaConcedente.setVisible(!isTutor);
+        }
+
+        // 3. Filtro dati
         if (isTutor) {
             // Il Tutor vede TUTTE le richieste inviate da chiunque
             listaRichieste.sort(java.util.Comparator.comparing(RichiestaExtra::getData).reversed());
@@ -502,9 +517,10 @@ public class MainController {
             colCompitoPremio.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getPremio()));
             colCompitoScadenza.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getScadenza()));
             colCompitoDestinatario.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDestinatario()));
+            colCompitoMittente.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getMittente()));
 
             colCompitoStato.setCellValueFactory(cellData ->
-                    new SimpleStringProperty(cellData.getValue().isCompletato() ? "Completato" : "In corso")
+                    new SimpleStringProperty(cellData.getValue().getStatoTesto())
             );
 
             tableCompiti.setItems(listaTask);
@@ -516,7 +532,7 @@ public class MainController {
             tableCompiti.setOnKeyPressed(event -> {
                 if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
                     Task selezionato = tableCompiti.getSelectionModel().getSelectedItem();
-                    if (selezionato != null) {
+                    if (selezionato != null && selezionato.getStato() == Task.StatoTask.IN_CORSO) {
                         selezionato.confermaEsecuzione();
 
                         // AGGIORNAMENTO SU DATABASE
@@ -550,8 +566,13 @@ public class MainController {
                         new SimpleStringProperty(cellData.getValue().getRichiedente()));
             }
 
+            if (colRichiestaConcedente != null) {
+                colRichiestaConcedente.setCellValueFactory(cellData ->
+                        new SimpleStringProperty(cellData.getValue().getConcedente()));
+            }
+
             colRichiestaStato.setCellValueFactory(cellData ->
-                    new SimpleStringProperty(cellData.getValue().getStato()));
+                    new SimpleStringProperty(cellData.getValue().getStato().name()));
 
             tableRichieste.setItems(listaRichieste);
 
@@ -566,7 +587,7 @@ public class MainController {
                         if (selezionata != null) {
                             // Se è il Tutor a premere INVIO, approva la richiesta
                             if (utenteCorrente instanceof Tutor) {
-                                selezionata.setStato("APPROVATA");
+                                selezionata.setStato(RichiestaExtra.StatoRichiesta.APPROVATA);
 
                                 // AGGIORNAMENTO SU DATABASE
                                 DatabaseManager.aggiornaStatoRichiesta(selezionata);
@@ -835,6 +856,7 @@ public class MainController {
             Parent root = loader.load();
 
             NuovoTaskController controller = loader.getController();
+            controller.setMittente(utenteCorrente.getUsername());
 
             // Callback per aggiungere il task appena creato alla lista
             controller.setOnSalvaCallback(nuovoTask -> {
@@ -881,9 +903,9 @@ public class MainController {
             NuovaRichiestaController controller = loader.getController();
 
             // Callback quando lo Junior invia la richiesta
-            controller.setOnSalvaCallback((importo, motivazione) -> {
+            controller.setOnSalvaCallback((importo, concedente, motivazione) -> {
                 // 1. Crea l'oggetto RichiestaExtra
-                RichiestaExtra nuovaRichiesta = new RichiestaExtra(importo, motivazione, utenteCorrente.getUsername());
+                RichiestaExtra nuovaRichiesta = new RichiestaExtra(importo, motivazione, utenteCorrente.getUsername(), concedente);
 
                 // 2. Salva la richiesta nel Database SQLite
                 DatabaseManager.salvaRichiesta(nuovaRichiesta);

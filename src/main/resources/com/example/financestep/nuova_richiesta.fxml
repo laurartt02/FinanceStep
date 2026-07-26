@@ -15,6 +15,9 @@
     <Label text="Importo richiesto (€):"/>
     <TextField fx:id="txtImporto" promptText="Es. 15.00"/>
 
+    <Label text="Tutor concedente:"/>
+    <TextField fx:id="txtTutor" promptText="Es. Giovanni"/>
+
     <Label text="Motivazione:"/>
     <TextArea fx:id="txtMotivazione" promptText="Es. Biglietto del cinema" prefRowCount="3" wrapText="true"/>
 

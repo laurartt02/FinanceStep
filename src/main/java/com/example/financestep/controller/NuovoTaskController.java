@@ -16,6 +16,11 @@ public class NuovoTaskController {
     @FXML private TextField txtDestinatario;
 
     private Consumer<Task> onSalvaCallback;
+    private String mittente; // username del Tutor loggato, impostato dal MainController
+
+    public void setMittente(String mittente) {
+        this.mittente = mittente;
+    }
 
     public void setOnSalvaCallback(Consumer<Task> callback) {
         this.onSalvaCallback = callback;
@@ -46,7 +51,7 @@ public class NuovoTaskController {
             }
 
             // Crea il nuovo Task
-            Task nuovoTask = new Task(titolo, premio, scadenza, destinatario);
+            Task nuovoTask = new Task(titolo, premio, scadenza, destinatario, mittente);
 
             // Passa il nuovo task al MainController tramite il callback
             if (onSalvaCallback != null) {

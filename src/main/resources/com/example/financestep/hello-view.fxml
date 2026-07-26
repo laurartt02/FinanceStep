@@ -159,6 +159,7 @@
                                         <TableColumn fx:id="colCompitoPremio" prefWidth="75.0" text="Premio" />
                                         <TableColumn fx:id="colCompitoScadenza" prefWidth="75.0" text="Scadenza" />
                                         <TableColumn fx:id="colCompitoDestinatario" prefWidth="75.0" text="Destinatario" />
+                                        <TableColumn fx:id="colCompitoMittente" prefWidth="75.0" text="Mittente" />
                                         <TableColumn fx:id="colCompitoStato" prefWidth="75.0" text="Stato" />
                                     </columns>
                                     <columnResizePolicy>
@@ -171,6 +172,7 @@
                                         <TableColumn fx:id="colRichiestaImporto" prefWidth="75.0" text="Importo" />
                                         <TableColumn fx:id="colRichiestaMotivazione" prefWidth="75.0" text="Motivazione" />
                                         <TableColumn fx:id="colRichiestaRichiedente" prefWidth="75.0" text="Richiedente" />
+                                        <TableColumn fx:id="colRichiestaConcedente" prefWidth="75.0" text="Concedente" />
                                         <TableColumn fx:id="colRichiestaStato" prefWidth="75.0" text="Stato" />
                                     </columns>
                                     <columnResizePolicy>

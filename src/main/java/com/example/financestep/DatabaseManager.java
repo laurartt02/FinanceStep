@@ -47,6 +47,7 @@ public class DatabaseManager {
                 + "premio REAL NOT NULL, "
                 + "scadenza TEXT NOT NULL, "
                 + "destinatario TEXT NOT NULL, "
+                + "mittente TEXT NOT NULL, "
                 + "stato TEXT NOT NULL"
                 + ");";
 
@@ -56,6 +57,7 @@ public class DatabaseManager {
                 + "importo REAL NOT NULL, "
                 + "motivazione TEXT NOT NULL, "
                 + "richiedente TEXT NOT NULL, "
+                + "concedente TEXT NOT NULL, "
                 + "stato TEXT NOT NULL"
                 + ");";
 
@@ -71,6 +73,27 @@ public class DatabaseManager {
             System.out.println("Database SQLite inizializzato con successo!");
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+
+        // Migrazione per database già esistenti creati con lo schema vecchio
+        eseguiAlterSeNecessario("ALTER TABLE compiti ADD COLUMN mittente TEXT NOT NULL DEFAULT ''");
+
+        // Rimozione dei flag di notifica (schema abbandonato) dal DB già esistente
+        eseguiAlterSeNecessario("ALTER TABLE compiti DROP COLUMN notifica_nuovo_compito_vista");
+        eseguiAlterSeNecessario("ALTER TABLE compiti DROP COLUMN notifica_completamento_gestita");
+        eseguiAlterSeNecessario("ALTER TABLE compiti DROP COLUMN notifica_premio_vista_junior");
+        eseguiAlterSeNecessario("ALTER TABLE compiti DROP COLUMN sollecito_tutor_mostrato");
+        eseguiAlterSeNecessario("ALTER TABLE compiti DROP COLUMN junior_scaduto_notificato");
+
+        eseguiAlterSeNecessario("ALTER TABLE richieste ADD COLUMN concedente TEXT NOT NULL DEFAULT ''");
+    }
+
+    private static void eseguiAlterSeNecessario(String sql) {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException e) {
+            // colonna già esistente: si ignora l'errore
         }
     }
 
@@ -270,17 +293,24 @@ public class DatabaseManager {
     // --- OPERAZIONI COMPITI (TASK) ---
 
     public static void salvaTask(Task t) {
-        String sql = "INSERT INTO compiti(titolo, premio, scadenza, destinatario, stato) VALUES(?,?,?,?,?)";
+        String sql = "INSERT INTO compiti(titolo, premio, scadenza, destinatario, mittente, stato) VALUES(?,?,?,?,?,?)";
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             pstmt.setString(1, t.getTitolo());
             pstmt.setDouble(2, t.getPremio());
             pstmt.setString(3, t.getScadenza().toString());
             pstmt.setString(4, t.getDestinatario());
-            pstmt.setString(5, t.isCompletato() ? "COMPLETATO" : "IN_CORSO");
+            pstmt.setString(5, t.getMittente());
+            pstmt.setString(6, t.getStato().name());
 
             pstmt.executeUpdate();
+
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    t.setId(rs.getInt(1));
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -299,11 +329,11 @@ public class DatabaseManager {
                         rs.getString("titolo"),
                         rs.getDouble("premio"),
                         LocalDate.parse(rs.getString("scadenza")),
-                        rs.getString("destinatario")
+                        rs.getString("destinatario"),
+                        rs.getString("mittente")
                 );
-                if ("COMPLETATO".equalsIgnoreCase(rs.getString("stato"))) {
-                    t.confermaEsecuzione();
-                }
+                t.setId(rs.getInt("id"));
+                t.setStato(Task.StatoTask.valueOf(rs.getString("stato")));
                 lista.add(t);
             }
         } catch (SQLException e) {
@@ -313,13 +343,12 @@ public class DatabaseManager {
     }
 
     public static void aggiornaStatoTask(Task t) {
-        String sql = "UPDATE compiti SET stato = ? WHERE titolo = ? AND destinatario = ?";
+        String sql = "UPDATE compiti SET stato = ? WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, t.isCompletato() ? "COMPLETATO" : "IN_CORSO");
-            pstmt.setString(2, t.getTitolo());
-            pstmt.setString(3, t.getDestinatario());
+            pstmt.setString(1, t.getStato().name());
+            pstmt.setInt(2, t.getId());
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -331,7 +360,7 @@ public class DatabaseManager {
     // --- OPERAZIONI RICHIESTE EXTRA ---
 
     public static void salvaRichiesta(RichiestaExtra r) {
-        String sql = "INSERT INTO richieste(data, importo, motivazione, richiedente, stato) VALUES(?,?,?,?,?)";
+        String sql = "INSERT INTO richieste(data, importo, motivazione, richiedente, concedente, stato) VALUES(?,?,?,?,?,?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -339,9 +368,17 @@ public class DatabaseManager {
             pstmt.setDouble(2, r.getImporto());
             pstmt.setString(3, r.getMotivazione());
             pstmt.setString(4, r.getRichiedente());
-            pstmt.setString(5, r.getStato());
+            pstmt.setString(5, r.getConcedente());
+            pstmt.setString(6, r.getStato().name());
 
             pstmt.executeUpdate();
+
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    r.setId(rs.getInt(1));
+                }
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -359,9 +396,12 @@ public class DatabaseManager {
                 RichiestaExtra r = new RichiestaExtra(
                         rs.getDouble("importo"),
                         rs.getString("motivazione"),
-                        rs.getString("richiedente")
+                        rs.getString("richiedente"),
+                        rs.getString("concedente")
                 );
-                r.setStato(rs.getString("stato"));
+                r.setId(rs.getInt("id"));
+                r.setData(LocalDate.parse(rs.getString("data")));
+                r.setStato(RichiestaExtra.StatoRichiesta.valueOf(rs.getString("stato")));
                 lista.add(r);
             }
         } catch (SQLException e) {
@@ -371,14 +411,12 @@ public class DatabaseManager {
     }
 
     public static void aggiornaStatoRichiesta(RichiestaExtra r) {
-        String sql = "UPDATE richieste SET stato = ? WHERE richiedente = ? AND motivazione = ? AND importo = ?";
+        String sql = "UPDATE richieste SET stato = ? WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, r.getStato());
-            pstmt.setString(2, r.getRichiedente());
-            pstmt.setString(3, r.getMotivazione());
-            pstmt.setDouble(4, r.getImporto());
+            pstmt.setString(1, r.getStato().name());
+            pstmt.setInt(2, r.getId());
 
             pstmt.executeUpdate();
         } catch (SQLException e) {

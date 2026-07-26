@@ -13,7 +13,7 @@ public class Tutor extends Persona {
 
     public void approvaBudget(RichiestaExtra richiesta) {
         if (richiesta != null) {
-            richiesta.setStato("APPROVATA");
+            richiesta.setStato(RichiestaExtra.StatoRichiesta.APPROVATA);
         }
     }
 
