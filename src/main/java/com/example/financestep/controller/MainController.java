@@ -7,6 +7,7 @@ import com.example.financestep.controller.NuovaRichiestaController;
 import com.example.financestep.controller.NuovaTransazioneController;
 import com.example.financestep.controller.NuovoTaskController;
 import com.example.financestep.model.*;
+import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -44,6 +45,8 @@ public class MainController {
     private Label lblSalvadanaio;
     @FXML
     private Label lblObiettivo;
+    @FXML
+    private Label badgeCompiti; // pallino di notifica Compiti da fare
 
     @FXML private javafx.scene.control.Button btnModificaObiettivo;
     @FXML private javafx.scene.control.Button btnNuovoCompito;
@@ -133,6 +136,11 @@ public class MainController {
         // Filtro compiti/task in base all'utente
         aggiornaListaCompiti();
 
+        // Notifica "Nuovo Compito" allo Junior, mostrata una sola volta per x task creati
+        if (!isTutor) {
+            javafx.application.Platform.runLater(this::mostraNotificheNuoviCompiti);
+        }
+
         // Filtro richieste in base all'utente
         aggiornaListaRichieste();
 
@@ -212,6 +220,74 @@ public class MainController {
             }
             listaTask.sort(java.util.Comparator.comparing(Task::getScadenza).reversed());
             tableCompiti.setItems(compitiJunior);
+        }
+        aggiornaBadgeCompiti();
+    }
+
+    private void mostraNotificheNuoviCompiti() {
+        int ultimoNotificato = DatabaseManager.getUltimoIdNotificato(utenteCorrente.getUsername());
+        int massimoId = ultimoNotificato;
+
+        List<Task> nuovi = new java.util.ArrayList<>();
+        for (Task t : listaTask) {
+            if (t.getDestinatario() != null
+                    && t.getDestinatario().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && t.getId() > ultimoNotificato) {
+                nuovi.add(t);
+            }
+        }
+
+        if (nuovi.isEmpty()) {
+            return;
+        }
+
+        nuovi.sort(java.util.Comparator.comparingInt(Task::getId));
+
+        StringBuilder dettaglio = new StringBuilder();
+        for (Task t : nuovi) {
+            dettaglio.append("• ").append(t.getTitolo())
+                    .append(" (scadenza: ").append(t.getScadenza())
+                    .append(", da: ").append(t.getMittente())
+                    .append(")\n");
+
+            if (t.getId() > massimoId) {
+                massimoId = t.getId();
+            }
+        }
+
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+        alert.setTitle("Nuovi Compiti");
+        alert.setHeaderText("Hai " + nuovi.size() + " nuov" + (nuovi.size() == 1 ? "o compito" : "i compiti") + " da fare!");
+        alert.setContentText(dettaglio.toString());
+        alert.showAndWait();
+
+        DatabaseManager.aggiornaUltimoIdNotificato(utenteCorrente.getUsername(), massimoId);
+    }
+
+    private void aggiornaBadgeCompiti() {
+        if (badgeCompiti == null) return;
+
+        boolean isTutor = (utenteCorrente instanceof Tutor);
+
+        if (isTutor || utenteCorrente == null) {
+            badgeCompiti.setVisible(false);
+            return;
+        }
+
+        int conteggio = 0;
+        for (Task t : listaTask) {
+            if (t.getDestinatario() != null
+                    && t.getDestinatario().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && t.getStato() == Task.StatoTask.IN_CORSO) {
+                conteggio++;
+            }
+        }
+
+        if (conteggio > 0) {
+            badgeCompiti.setText(String.valueOf(conteggio));
+            badgeCompiti.setVisible(true);
+        } else {
+            badgeCompiti.setVisible(false);
         }
     }
 
@@ -533,18 +609,36 @@ public class MainController {
                 if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
                     Task selezionato = tableCompiti.getSelectionModel().getSelectedItem();
                     if (selezionato != null && selezionato.getStato() == Task.StatoTask.IN_CORSO) {
-                        selezionato.confermaEsecuzione();
 
-                        // AGGIORNAMENTO SU DATABASE
-                        DatabaseManager.aggiornaStatoTask(selezionato);
+                        javafx.scene.control.Alert conferma = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+                        conferma.setTitle("Compito Completato");
+                        conferma.setHeaderText("Hai completato il compito '" + selezionato.getTitolo() + "'?");
+                        conferma.setContentText("Se confermi, il Tutor " + selezionato.getMittente() + " riceverà una notifica e potrà inviarti il premio.");
 
-                        tableCompiti.refresh();
-                        mostraAvviso(
-                                javafx.scene.control.Alert.AlertType.INFORMATION,
-                                "Notifica Inviata!",
-                                "Il task '" + selezionato.getTitolo() + "' è stato contrassegnato come COMPLETATO.\n" +
-                                        "Notifica inviata con successo al Tutor!"
-                        );
+                        javafx.scene.control.ButtonType btnRiferisci = new javafx.scene.control.ButtonType("Riferisci");
+                        javafx.scene.control.ButtonType btnAnnulla = new javafx.scene.control.ButtonType("Annulla", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+                        conferma.getButtonTypes().setAll(btnRiferisci, btnAnnulla);
+
+                        conferma.showAndWait().ifPresent(risposta -> {
+                            if (risposta == btnRiferisci) {
+                                selezionato.confermaEsecuzione();
+
+                                // AGGIORNAMENTO SU DATABASE
+                                DatabaseManager.aggiornaStatoTask(selezionato);
+
+                                tableCompiti.refresh();
+                                aggiornaBadgeCompiti();
+
+                                mostraAvviso(
+                                        javafx.scene.control.Alert.AlertType.INFORMATION,
+                                        "Notifica Inviata!",
+                                        "Il task '" + selezionato.getTitolo() + "' è stato contrassegnato come COMPLETATO.\n" +
+                                                "Notifica inviata con successo al Tutor!"
+                                );
+                            }
+                            // Se preme Annulla, non facciamo nulla: il task resta IN_CORSO
+                            
+                        });
                     }
                 }
             });
