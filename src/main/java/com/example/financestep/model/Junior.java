@@ -10,7 +10,7 @@ public class Junior extends Persona {
 
     // Costruttore semplificato per il Login
     public Junior(String username) {
-        super(1, username, "", ""); // id=1, password e email vuote
+        super(1, username, ""); // id=1, password e email vuote
         this.rating = 0;
         this.portafoglio = null;
         this.salvadanai = new ArrayList<>();

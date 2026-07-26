@@ -6,15 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="3518af70-d4a8-460e-aeb8-49bb0615295c" name="Changes" comment="Nuova Modifica: risistemato il processo di autenticazione dell'utente (Registrazione e Login con username e password) e aggiunta la funzione di Monitora Junior solo per il Tutor">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/NuovaRichiestaController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/NuovaRichiestaController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/NuovoTaskController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/NuovoTaskController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/RichiestaExtra.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/RichiestaExtra.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Task.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Junior.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Junior.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Persona.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Persona.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Tutor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Tutor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/nuova_richiesta.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/nuova_richiesta.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -5,7 +5,7 @@ public class Tutor extends Persona {
 
     // Costruttore semplificato per il Login
     public Tutor(String username) {
-        super(1, username, "", ""); // id=1, password e email vuote
+        super(1, username, ""); // id=1, password  vuote
         this.codiceFam = 0;
     }
 
