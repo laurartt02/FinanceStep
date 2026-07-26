@@ -27,6 +27,17 @@
                     <children>
                         <VBox spacing="5.0">
                             <children>
+                                <Label text="👥 Ruoli e Permessi (Tutor vs Junior)">
+                                    <font>
+                                        <Font name="System Bold" size="14.0" />
+                                    </font>
+                                </Label>
+                                <Label text="• Tutor: Ha pieno controllo, può modificare l'obiettivo del salvadanaio, resettare l'applicazione e gestire compiti/richieste.&#10;• Junior: Può gestire i propri risparmi, effettuare versamenti/prelievi e richiedere extra al Tutor." wrapText="true" />
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="5.0">
+                            <children>
                                 <Label text="💰 Saldo Portafoglio">
                                     <font>
                                         <Font name="System Bold" size="14.0" />
@@ -49,23 +60,23 @@
 
                         <VBox spacing="5.0">
                             <children>
+                                <Label text="🔔 Notifiche su Compiti e Richieste">
+                                    <font>
+                                        <Font name="System Bold" size="14.0" />
+                                    </font>
+                                </Label>
+                                <Label text="Selezionando una riga nella tabella Compiti o Richieste e premendo INVIO si aprirà una finestra di notifica con l'azione da compiere: lo Junior può segnalare un compito come completato (Riferisci) o inviare una richiesta, mentre il Tutor può inviare il premio per un compito completato o approvare/rifiutare una richiesta." wrapText="true" />
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="5.0">
+                            <children>
                                 <Label text="🔍 Filtro Transazioni">
                                     <font>
                                         <Font name="System Bold" size="14.0" />
                                     </font>
                                 </Label>
                                 <Label text="Dal menu Edit -&gt; Filtra Transazioni... puoi cercare voci per descrizione, importo o tipo. Per ripristinare la vista completa ti basta cliccare su 'Azzera Filtro'." wrapText="true" />
-                            </children>
-                        </VBox>
-
-                        <VBox spacing="5.0">
-                            <children>
-                                <Label text="👥 Ruoli e Permessi (Tutor vs Junior)">
-                                    <font>
-                                        <Font name="System Bold" size="14.0" />
-                                    </font>
-                                </Label>
-                                <Label text="• Tutor: Ha pieno controllo, può modificare l'obiettivo del salvadanaio, resettare l'applicazione e gestire compiti/richieste.&#10;• Junior: Può gestire i propri risparmi, effettuare versamenti/prelievi e richiedere extra al Tutor." wrapText="true" />
                             </children>
                         </VBox>
                     </children>

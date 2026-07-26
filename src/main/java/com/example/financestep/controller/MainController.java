@@ -2,12 +2,7 @@ package com.example.financestep.controller;
 
 
 import com.example.financestep.DatabaseManager;
-import com.example.financestep.controller.MonitoraTransazioniController;
-import com.example.financestep.controller.NuovaRichiestaController;
-import com.example.financestep.controller.NuovaTransazioneController;
-import com.example.financestep.controller.NuovoTaskController;
 import com.example.financestep.model.*;
-import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -24,6 +19,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 
 public class MainController {
 
@@ -138,7 +134,15 @@ public class MainController {
 
         // Notifica "Nuovo Compito" allo Junior, mostrata una sola volta per x task creati
         if (!isTutor) {
-            javafx.application.Platform.runLater(this::mostraNotificheNuoviCompiti);
+            javafx.application.Platform.runLater(() -> {
+                mostraNotificheNuoviCompiti();
+                mostraNotifichePremiRicevuti();
+            });
+        }
+
+        // Notifica "Pagare lo Junior che ha completato il Task"
+        if (isTutor) {
+            javafx.application.Platform.runLater(this::mostraNotifichePagamentiTask);
         }
 
         // Filtro richieste in base all'utente
@@ -265,21 +269,32 @@ public class MainController {
     }
 
     private void aggiornaBadgeCompiti() {
-        if (badgeCompiti == null) return;
-
-        boolean isTutor = (utenteCorrente instanceof Tutor);
-
-        if (isTutor || utenteCorrente == null) {
-            badgeCompiti.setVisible(false);
+        if (badgeCompiti == null || utenteCorrente == null) {
+            if (badgeCompiti != null) badgeCompiti.setVisible(false);
             return;
         }
 
+        boolean isTutor = (utenteCorrente instanceof Tutor);
         int conteggio = 0;
-        for (Task t : listaTask) {
-            if (t.getDestinatario() != null
-                    && t.getDestinatario().equalsIgnoreCase(utenteCorrente.getUsername())
-                    && t.getStato() == Task.StatoTask.IN_CORSO) {
-                conteggio++;
+
+        if (isTutor) {
+            // Task che i Junior gli hanno segnalato come completati, in attesa che invii il premio
+            for (Task t : listaTask) {
+                if (t.getMittente() != null
+                        && t.getMittente().equalsIgnoreCase(utenteCorrente.getUsername())
+                        && t.getStato() == Task.StatoTask.COMPLETATO) {
+                    conteggio++;
+                }
+            }
+        }
+        else {
+            // Task ancora da completare
+            for (Task t : listaTask) {
+                if (t.getDestinatario() != null
+                        && t.getDestinatario().equalsIgnoreCase(utenteCorrente.getUsername())
+                        && t.getStato() == Task.StatoTask.IN_CORSO) {
+                    conteggio++;
+                }
             }
         }
 
@@ -289,6 +304,48 @@ public class MainController {
         } else {
             badgeCompiti.setVisible(false);
         }
+    }
+
+    private void mostraNotifichePremiRicevuti() {
+        int ultimoNotificato = DatabaseManager.getUltimoIdPremioNotificato(utenteCorrente.getUsername());
+        int massimoId = ultimoNotificato;
+
+        List<Task> pagati = new java.util.ArrayList<>();
+        for (Task t : listaTask) {
+            if (t.getDestinatario() != null
+                    && t.getDestinatario().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && t.getStato() == Task.StatoTask.PAGATO
+                    && t.getId() > ultimoNotificato) {
+                pagati.add(t);
+            }
+        }
+
+        if (pagati.isEmpty()) {
+            return;
+        }
+
+        pagati.sort(java.util.Comparator.comparingInt(Task::getId));
+
+        StringBuilder dettaglio = new StringBuilder();
+        double totale = 0.0;
+        for (Task t : pagati) {
+            dettaglio.append("• ").append(t.getTitolo())
+                    .append(" → €").append(String.format("%.2f", t.getPremio()))
+                    .append("\n");
+            totale += t.getPremio();
+
+            if (t.getId() > massimoId) {
+                massimoId = t.getId();
+            }
+        }
+
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+        alert.setTitle("Premio Ricevuto! 🎉");
+        alert.setHeaderText("Complimenti! Hai ricevuto €" + String.format("%.2f", totale) + " di premio");
+        alert.setContentText(dettaglio.toString() + "\nL'importo è stato versato nel tuo Salvadanaio.");
+        alert.showAndWait();
+
+        DatabaseManager.aggiornaUltimoIdPremioNotificato(utenteCorrente.getUsername(), massimoId);
     }
 
     private void aggiornaListaRichieste() {
@@ -608,7 +665,11 @@ public class MainController {
             tableCompiti.setOnKeyPressed(event -> {
                 if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
                     Task selezionato = tableCompiti.getSelectionModel().getSelectedItem();
-                    if (selezionato != null && selezionato.getStato() == Task.StatoTask.IN_CORSO) {
+                    if (selezionato == null) return;
+
+                    boolean isTutor = (utenteCorrente instanceof Tutor);
+
+                    if (!isTutor && selezionato.getStato() == Task.StatoTask.IN_CORSO) {
 
                         javafx.scene.control.Alert conferma = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
                         conferma.setTitle("Compito Completato");
@@ -637,8 +698,10 @@ public class MainController {
                                 );
                             }
                             // Se preme Annulla, non facciamo nulla: il task resta IN_CORSO
-                            
+
                         });
+                    } else if (isTutor && selezionato.getStato() == Task.StatoTask.COMPLETATO) {
+                        chiediInvioPremio(selezionato);
                     }
                 }
             });
@@ -874,6 +937,105 @@ public class MainController {
                 mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Errore Formato", "Inserisci una cifra numerica valida.");
             }
         });
+    }
+
+    // Metodo che gestisce l'invio del premio
+    private void inviaPremioTask(Task task) {
+        double saldoPortafoglio = 0.0;
+        try {
+            saldoPortafoglio = Double.parseDouble(lblSaldoPortafoglio.getText().replace(",", "."));
+        } catch (NumberFormatException e) {
+            saldoPortafoglio = 0.0;
+        }
+        double saldoSalvadanaio = salvadanaioCorrente.getSommaVersata();
+        double premio = task.getPremio();
+
+        boolean usaPortafoglio;
+        if (saldoPortafoglio >= saldoSalvadanaio) {
+            usaPortafoglio = (saldoPortafoglio >= premio);
+            if (!usaPortafoglio && saldoSalvadanaio < premio) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Fondi Insufficienti",
+                        "Non hai abbastanza fondi né nel Portafoglio né nel Salvadanaio per inviare questo premio.");
+                return;
+            }
+        } else {
+            usaPortafoglio = !(saldoSalvadanaio >= premio);
+            if (usaPortafoglio && saldoPortafoglio < premio) {
+                mostraAvviso(javafx.scene.control.Alert.AlertType.ERROR, "Fondi Insufficienti",
+                        "Non hai abbastanza fondi né nel Portafoglio né nel Salvadanaio per inviare questo premio.");
+                return;
+            }
+        }
+
+        // 1. Sottrai il premio dalla fonte scelta
+        if (usaPortafoglio) {
+            Spesa s = new Spesa(-premio, LocalDate.now(), "Premio task: " + task.getTitolo(), "Compiti");
+            tableTransazioni.getItems().add(s);
+            DatabaseManager.salvaTransazione(s, utenteCorrente.getUsername());
+            aggiornaListaTransazioni();
+            aggiornaSaldoPortafoglio();
+        } else {
+            salvadanaioCorrente.setSommaVersata(salvadanaioCorrente.getSommaVersata() - premio);
+            DatabaseManager.salvaSalvadanaio(salvadanaioCorrente, utenteCorrente.getUsername());
+            aggiornaVisteSalvadanaio();
+        }
+
+        // 2. Accredita il premio sul Salvadanaio dello Junior destinatario
+        Salvadanaio salvadanaioJunior = DatabaseManager.caricaSalvadanaio(task.getDestinatario());
+        if (salvadanaioJunior == null) {
+            salvadanaioJunior = new Salvadanaio("Obiettivo", 0.0);
+        }
+        salvadanaioJunior.setSommaVersata(salvadanaioJunior.getSommaVersata() + premio);
+        DatabaseManager.salvaSalvadanaio(salvadanaioJunior, task.getDestinatario());
+
+        // Registra il movimento anche nella tabella Transazioni dello Junior, per tracciabilità
+        Entrata premioRicevuto = new Entrata(premio, LocalDate.now(), "Premio task: " + task.getTitolo(), "Compiti");
+        DatabaseManager.salvaTransazione(premioRicevuto, task.getDestinatario());
+
+        // 3. Aggiorna lo stato del task a PAGATO
+        task.confermaPagamento();
+        DatabaseManager.aggiornaStatoTask(task);
+        tableCompiti.refresh();
+        aggiornaBadgeCompiti();
+
+        mostraAvviso(javafx.scene.control.Alert.AlertType.INFORMATION, "Premio Inviato",
+                "Premio di €" + String.format("%.2f", premio) + " inviato a " + task.getDestinatario() +
+                        " per il task '" + task.getTitolo() + "'.");
+    }
+
+    // Metodo che chiede conferma per un task completato, con "Invia Denaro" o "Annulla"
+    private void chiediInvioPremio(Task task) {
+        javafx.scene.control.Alert conferma = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        conferma.setTitle("Task Completato");
+        conferma.setHeaderText(task.getDestinatario() + " ha completato il task '" + task.getTitolo() + "'");
+        conferma.setContentText("Premio da inviare: €" + String.format("%.2f", task.getPremio()));
+
+        javafx.scene.control.ButtonType btnInvia = new javafx.scene.control.ButtonType("Invia Denaro");
+        javafx.scene.control.ButtonType btnAnnulla = new javafx.scene.control.ButtonType("Annulla", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        conferma.getButtonTypes().setAll(btnInvia, btnAnnulla);
+
+        conferma.showAndWait().ifPresent(risposta -> {
+            if (risposta == btnInvia) {
+                inviaPremioTask(task);
+            }
+            // Su Annulla non facciamo nulla: il task resta COMPLETATO
+        });
+    }
+
+    private void mostraNotifichePagamentiTask() {
+        List<Task> daPagare = new java.util.ArrayList<>();
+        for (Task t : listaTask) {
+            if (t.getMittente() != null
+                    && t.getMittente().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && t.getStato() == Task.StatoTask.COMPLETATO) {
+                daPagare.add(t);
+            }
+        }
+        daPagare.sort(java.util.Comparator.comparingInt(Task::getId));
+
+        for (Task t : daPagare) {
+            chiediInvioPremio(t);
+        }
     }
 
     private void controllaObiettivoRaggiunto() {
