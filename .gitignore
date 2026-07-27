@@ -42,3 +42,9 @@ build/
 
 # IntelliJ IDEA (ignora l'intera cartella .idea per sicurezza)
 .idea/
+
+# Installer generati
+installer/
+
+# Maven Shade
+dependency-reduced-pom.xml

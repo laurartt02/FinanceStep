@@ -9,10 +9,19 @@ import java.util.List;
 
 public class DatabaseManager {
 
-    private static final String URL = "jdbc:sqlite:financestep.db";
+    private static final String URL = "jdbc:sqlite:" + getPercorsoDatabase();
+
+    private static String getPercorsoDatabase() {
+        String cartellaDati = System.getenv("APPDATA") + java.io.File.separator + "FinanceStep";
+        java.io.File cartella = new java.io.File(cartellaDati);
+        if (!cartella.exists()) {
+            cartella.mkdirs();
+        }
+        return cartellaDati + java.io.File.separator + "financestep.db";
+    }
 
     public static Connection getConnection() throws SQLException {
-        System.out.println("DB path: " + new java.io.File("financestep.db").getAbsolutePath());
+        System.out.println("DB path: " + URL);
         return DriverManager.getConnection(URL);
     }
 
@@ -21,10 +30,10 @@ public class DatabaseManager {
         String sqlUtenti = "CREATE TABLE IF NOT EXISTS utenti ("
                 + "username TEXT PRIMARY KEY, "
                 + "password TEXT NOT NULL, "
-                + "ruolo TEXT NOT NULL" // "Junior" o "Tutor"
-                + "ultimo_id_notificato INTEGER NOT NULL DEFAULT 0"
-                + "ultimo_id_premio_notificato INTEGER NOT NULL DEFAULT 0"
-                + "ultimo_id_richiesta_notificata INTEGER NOT NULL DEFAULT 0"
+                + "ruolo TEXT NOT NULL," // "Junior" o "Tutor"
+                + "ultimo_id_notificato INTEGER NOT NULL DEFAULT 0,"
+                + "ultimo_id_premio_notificato INTEGER NOT NULL DEFAULT 0,"
+                + "ultimo_id_richiesta_notificata INTEGER NOT NULL DEFAULT 0,"
                 + "ultimo_id_scaduto_notificato INTEGER NOT NULL DEFAULT 0"
                 +");";
 
