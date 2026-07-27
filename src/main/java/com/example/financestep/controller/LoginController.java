@@ -92,6 +92,7 @@ public class LoginController {
         alert.setTitle("Errore login");
         alert.setHeaderText(null);
         alert.setContentText(messaggio);
+        com.example.financestep.IconUtil.applica(alert);
         alert.showAndWait();
     }
 
@@ -106,6 +107,8 @@ public class LoginController {
             Stage stagePrincipale = new Stage();
             stagePrincipale.setTitle("FinanceStep - " + persona.getUsername());
             stagePrincipale.setScene(new Scene(root, 900, 600));
+            com.example.financestep.IconUtil.applica(stagePrincipale);
+            stagePrincipale.setMaximized(true);
             stagePrincipale.show();
 
             Stage stageLogin = (Stage) ((Node) event.getSource()).getScene().getWindow();

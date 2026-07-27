@@ -5,12 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3518af70-d4a8-460e-aeb8-49bb0615295c" name="Changes" comment="Nuova Modifica: risistemato il processo di autenticazione dell'utente (Registrazione e Login con username e password) e aggiunta la funzione di Monitora Junior solo per il Tutor">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/IconUtil.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/icon.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/DatabaseManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/MainApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/LoginController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/LoginController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/MainController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/NuovaRichiestaController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/NuovaRichiestaController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/NuovoTaskController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/NuovoTaskController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/RegistrazioneController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/controller/RegistrazioneController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/financestep/model/Task.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/hello-view.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/login.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/login.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/example/financestep/nuova_transazione.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/example/financestep/nuova_transazione.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,8 +27,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="FxmlFile" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -39,20 +46,26 @@
     </option>
   </component>
   <component name="ProjectId" id="3GsJcPWJsUkMQlI3LzX1QnRoXhr" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\laura\IdeaProjects\FinanceStep\src\main\resources\com\example\financestep" />
+    </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.example.financestep.controller" />
     </key>
@@ -149,6 +162,7 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Primo Commit del mio progetto FinanceStep" />
     <MESSAGE value="Secondo Commit del mio progetto FinanceStep" />
     <MESSAGE value="Modifica del nome della classe &quot;User&quot; a &quot;Junior&quot;" />

@@ -18,6 +18,7 @@ public class MainApp extends Application {
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("FinanceStep");
         stage.setScene(scene);
+        IconUtil.applica(stage);
         stage.show();
     }
 

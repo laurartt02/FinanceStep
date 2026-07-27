@@ -30,6 +30,7 @@ public class AuthController {
             Stage nuovaStage = new Stage();
             nuovaStage.setTitle(titolo);
             nuovaStage.setScene(new Scene(root));
+            com.example.financestep.IconUtil.applica(nuovaStage);
             nuovaStage.show();
 
             // Chiudiamo la finestra di scelta iniziale (auth.fxml)

@@ -76,6 +76,7 @@ public class NuovaRichiestaController {
         alert.setTitle(titolo);
         alert.setHeaderText(null);
         alert.setContentText(messaggio);
+        com.example.financestep.IconUtil.applica(alert);
         alert.showAndWait();
     }
 }

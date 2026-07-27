@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class MainController {
 
     private javafx.collections.ObservableList<RichiestaExtra> listaRichieste = javafx.collections.FXCollections.observableArrayList();
 
+    @FXML private VBox rootVBox;
     @FXML
     private Label lblSaldoPortafoglio;
     @FXML
@@ -131,6 +133,9 @@ public class MainController {
         );
         aggiornaListaTransazioni();
 
+        // Aggiorna eventuali task scaduti PRIMA di mostrare la tabella e le notifiche
+        controllaScadenzeTask();
+
         // Filtro compiti/task in base all'utente
         aggiornaListaCompiti();
 
@@ -139,6 +144,7 @@ public class MainController {
                 mostraNotificheNuoviCompiti();
                 mostraNotifichePremiRicevuti();
                 mostraNotificheEsitoRichieste();
+                mostraNotificheTaskScadutiJunior();
             });
         }
 
@@ -146,6 +152,7 @@ public class MainController {
             javafx.application.Platform.runLater(() -> {
                 mostraNotifichePagamentiTask();
                 mostraNotificheRichiesteRicevute();
+                mostraNotificheTaskScaduti();
             });
         }
 
@@ -240,11 +247,24 @@ public class MainController {
             if (t.getDestinatario() != null
                     && t.getDestinatario().equalsIgnoreCase(utenteCorrente.getUsername())
                     && t.getId() > ultimoNotificato) {
-                nuovi.add(t);
+
+                // Aggiorniamo comunque il tracciamento dell'ID più alto visto
+                if (t.getId() > massimoId) {
+                    massimoId = t.getId();
+                }
+
+                // NOTIFICA ESCLUSIVA: mostra l'alert "Nuovi Compiti" SOLO se il compito è ancora IN_CORSO
+                if (t.getStato() == Task.StatoTask.IN_CORSO) {
+                    nuovi.add(t);
+                }
             }
         }
 
+        // Se non ci sono nuovi compiti IN_CORSO, aggiorniamo comunque l'ID nel DB per evitare che rimanga indietro
         if (nuovi.isEmpty()) {
+            if (massimoId > ultimoNotificato) {
+                DatabaseManager.aggiornaUltimoIdNotificato(utenteCorrente.getUsername(), massimoId);
+            }
             return;
         }
 
@@ -252,7 +272,7 @@ public class MainController {
 
         StringBuilder dettaglio = new StringBuilder();
         for (Task t : nuovi) {
-            dettaglio.append("• ").append(t.getTitolo())
+            dettaglio.append("- ").append(t.getTitolo())
                     .append(" (scadenza: ").append(t.getScadenza())
                     .append(", da: ").append(t.getMittente())
                     .append(")\n");
@@ -266,6 +286,7 @@ public class MainController {
         alert.setTitle("Nuovi Compiti");
         alert.setHeaderText("Hai " + nuovi.size() + " nuov" + (nuovi.size() == 1 ? "o compito" : "i compiti") + " da fare!");
         alert.setContentText(dettaglio.toString());
+        com.example.financestep.IconUtil.applica(alert);
         alert.showAndWait();
 
         DatabaseManager.aggiornaUltimoIdNotificato(utenteCorrente.getUsername(), massimoId);
@@ -346,6 +367,7 @@ public class MainController {
         alert.setTitle("Premio Ricevuto! 🎉");
         alert.setHeaderText("Complimenti! Hai ricevuto €" + String.format("%.2f", totale) + " di premio");
         alert.setContentText(dettaglio.toString() + "\nL'importo è stato versato nel tuo Salvadanaio.");
+        com.example.financestep.IconUtil.applica(alert);
         alert.showAndWait();
 
         DatabaseManager.aggiornaUltimoIdPremioNotificato(utenteCorrente.getUsername(), massimoId);
@@ -365,6 +387,97 @@ public class MainController {
         for (Task t : daPagare) {
             chiediInvioPremio(t);
         }
+    }
+
+    private void controllaScadenzeTask() {
+        LocalDate oggi = LocalDate.now();
+        for (Task t : listaTask) {
+            if (t.getStato() == Task.StatoTask.IN_CORSO && t.getScadenza() != null && t.getScadenza().isBefore(oggi)) {
+                t.setStato(Task.StatoTask.SCADUTO);
+                DatabaseManager.aggiornaStatoTask(t);
+            }
+        }
+    }
+
+    private void mostraNotificheTaskScaduti() {
+        int ultimoNotificato = DatabaseManager.getUltimoIdScadutoNotificato(utenteCorrente.getUsername());
+        int massimoId = ultimoNotificato;
+
+        List<Task> scaduti = new java.util.ArrayList<>();
+        for (Task t : listaTask) {
+            if (t.getMittente() != null
+                    && t.getMittente().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && t.getStato() == Task.StatoTask.SCADUTO
+                    && t.getId() > ultimoNotificato) {
+                scaduti.add(t);
+            }
+        }
+
+        if (scaduti.isEmpty()) {
+            return;
+        }
+
+        scaduti.sort(java.util.Comparator.comparingInt(Task::getId));
+
+        StringBuilder dettaglio = new StringBuilder();
+        for (Task t : scaduti) {
+            dettaglio.append("• ").append(t.getDestinatario())
+                    .append(" non ha completato '").append(t.getTitolo())
+                    .append("' entro la scadenza (").append(t.getScadenza()).append(")\n");
+
+            if (t.getId() > massimoId) {
+                massimoId = t.getId();
+            }
+        }
+
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+        alert.setTitle("Compiti Scaduti");
+        alert.setHeaderText("Alcuni compiti sono scaduti senza essere completati");
+        alert.setContentText(dettaglio.toString());
+        com.example.financestep.IconUtil.applica(alert);
+        alert.showAndWait();
+
+        DatabaseManager.aggiornaUltimoIdScadutoNotificato(utenteCorrente.getUsername(), massimoId);
+    }
+
+    private void mostraNotificheTaskScadutiJunior() {
+        int ultimoNotificato = DatabaseManager.getUltimoIdScadutoNotificato(utenteCorrente.getUsername());
+        int massimoId = ultimoNotificato;
+
+        List<Task> scaduti = new java.util.ArrayList<>();
+        for (Task t : listaTask) {
+            if (t.getDestinatario() != null
+                    && t.getDestinatario().equalsIgnoreCase(utenteCorrente.getUsername())
+                    && t.getStato() == Task.StatoTask.SCADUTO
+                    && t.getId() > ultimoNotificato) {
+                scaduti.add(t);
+            }
+        }
+
+        if (scaduti.isEmpty()) {
+            return;
+        }
+
+        scaduti.sort(java.util.Comparator.comparingInt(Task::getId));
+
+        StringBuilder dettaglio = new StringBuilder();
+        for (Task t : scaduti) {
+            dettaglio.append("• ").append(t.getTitolo())
+                    .append(" (scadenza: ").append(t.getScadenza()).append(")\n");
+
+            if (t.getId() > massimoId) {
+                massimoId = t.getId();
+            }
+        }
+
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+        alert.setTitle("Compiti Scaduti");
+        alert.setHeaderText("Non hai completato in tempo " + (scaduti.size() == 1 ? "questo compito" : "questi compiti"));
+        alert.setContentText(dettaglio.toString() + "\nNon puoi più completarlo/i.");
+        com.example.financestep.IconUtil.applica(alert);
+        alert.showAndWait();
+
+        DatabaseManager.aggiornaUltimoIdScadutoNotificato(utenteCorrente.getUsername(), massimoId);
     }
 
     private void mostraNotificheRichiesteRicevute() {
@@ -467,8 +580,9 @@ public class MainController {
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
             alert.setTitle(accettata ? "Richiesta Accettata" : "Richiesta Rifiutata");
             alert.setContentText("Richiesta per '" + r.getMotivazione() + "' "
-                    + (accettata ? "accettata 🙂" : "rifiutata ☹")
+                    + (accettata ? "accettata 🙂" : "rifiutata 🙁")
                     + (accettata ? ("\nImporto accreditato: €" + String.format("%.2f", r.getImporto())) : ""));
+            com.example.financestep.IconUtil.applica(alert);
             alert.showAndWait();
 
             if (r.getId() > massimoId) {
@@ -484,9 +598,120 @@ public class MainController {
     // Metodi per la MenuBar
 
     // FILE
+
+    // Generazione e Download Report Transazioni Tabellare
     @FXML
     private void gestisciSave() {
-        System.out.println("Salvataggio dati...");
+        if (utenteCorrente == null) {
+            mostraAvviso(javafx.scene.control.Alert.AlertType.WARNING, "Attenzione", "Nessun utente attualmente connesso.");
+            return;
+        }
+
+        // 1. Configurazione del FileChooser per far scegliere all'utente dove salvare
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Salva Report Transazioni");
+
+        // Nome del file proposto di default con username e timestamp
+        String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String nomePredefinito = "Report_Transazioni_" + utenteCorrente.getUsername() + "_" + timestamp + ".txt";
+        fileChooser.setInitialFileName(nomePredefinito);
+
+        // Filtro per salvare solo come file .txt
+        fileChooser.getExtensionFilters().add(
+                new javafx.stage.FileChooser.ExtensionFilter("Documenti di Testo (*.txt)", "*.txt")
+        );
+
+        // Recuperiamo la finestra (Stage) corrente per ancorare la finestra di dialogo
+        javafx.stage.Stage stage = (javafx.stage.Stage) lblPersonaCorrente.getScene().getWindow();
+        java.io.File fileReport = fileChooser.showSaveDialog(stage);
+
+        // Se l'utente chiude la finestra o clicca su "Annulla"
+        if (fileReport == null) {
+            System.out.println("Salvataggio del report annullato dall'utente.");
+            return;
+        }
+
+        // 2. Scrittura del Report Tabellare sul file selezionato
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(fileReport, java.nio.charset.StandardCharsets.UTF_8))) {
+
+            // Intestazione
+            writer.println("+-------------------------------------------------------------------------------+");
+            writer.println("|                       FINANCESTEP - REPORT TRANSAZIONI                        |");
+            writer.println("+-------------------------------------------------------------------------------+");
+            writer.println(String.format("| Utente: %-69s |", utenteCorrente.getUsername()));
+            writer.println(String.format("| Data Generazione: %-59s |", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
+            writer.println(String.format("| Saldo Portafoglio: € %-57s |", lblSaldoPortafoglio.getText()));
+            writer.println(String.format("| Salvadanaio Versato: € %-55s |", lblSalvadanaio.getText()));
+            writer.println(String.format("| Obiettivo Salvadanaio: € %-53s |", lblObiettivo.getText()));
+            writer.println("+-------------------------------------------------------------------------------+");
+            writer.println();
+
+            List<Transazione> transazioni = tableTransazioni.getItems();
+            if (transazioni.isEmpty()) {
+                writer.println("+-------------------------------------------------------------------------------+");
+                writer.println("|                  NESSUNA TRANSAZIONE PRESENTE IN ARCHIVIO                     |");
+                writer.println("+-------------------------------------------------------------------------------+");
+            } else {
+                // Intestazione Tabella
+                writer.println("+------------+------------+---------------+-------------------------------------+");
+                writer.println("| DATA       | TIPO       | IMPORTO       | DESCRIZIONE                         |");
+                writer.println("+------------+------------+---------------+-------------------------------------+");
+
+                double totaleEntrate = 0.0;
+                double totaleUscite = 0.0;
+
+                for (Transazione t : transazioni) {
+                    String tipo = t.getClass().getSimpleName();
+                    double importo = t.getImporto();
+                    String dataStr = t.getData() != null ? t.getData().toString() : "N/D";
+                    String desc = t.getDescrizione() != null ? t.getDescrizione() : "";
+
+                    if (desc.length() > 35) {
+                        desc = desc.substring(0, 32) + "...";
+                    }
+
+                    if (importo >= 0) {
+                        totaleEntrate += importo;
+                    } else {
+                        totaleUscite += Math.abs(importo);
+                    }
+
+                    writer.println(String.format("| %-10s | %-10s | € %-11.2f | %-35s |",
+                            dataStr,
+                            tipo,
+                            importo,
+                            desc
+                    ));
+                }
+
+                writer.println("+------------+------------+---------------+-------------------------------------+");
+
+                // Totali finali
+                writer.println(String.format("| TOTALE ENTRATE: € %-57.2f |", totaleEntrate));
+                writer.println(String.format("| TOTALE USCITE:  € %-57.2f |", totaleUscite));
+                writer.println("+-------------------------------------------------------------------------------+");
+            }
+
+            writer.println();
+            writer.println("+-------------------------------------------------------------------------------+");
+            writer.println("|                          FINE REPORT - FINANCESTEP                            |");
+            writer.println("+-------------------------------------------------------------------------------+");
+
+            // Notifica di conferma
+            mostraAvviso(
+                    javafx.scene.control.Alert.AlertType.INFORMATION,
+                    "Report Scaricato",
+                    "Il report delle transazioni è stato salvato con successo in:\n\n" + fileReport.getAbsolutePath()
+            );
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostraAvviso(
+                    javafx.scene.control.Alert.AlertType.ERROR,
+                    "Errore Salvataggio",
+                    "Impossibile scaricare il report delle transazioni: " + e.getMessage()
+            );
+        }
     }
 
     @FXML
@@ -516,6 +741,7 @@ public class MainController {
             Stage stageLogin = new Stage();
             stageLogin.setTitle("Accedi a FinanceStep");
             stageLogin.setScene(new Scene(loader.load(), 320, 280));
+            com.example.financestep.IconUtil.applica(stageLogin);
             stageLogin.show();
 
             Stage stagePrincipale = (Stage) lblPersonaCorrente.getScene().getWindow();
@@ -567,6 +793,7 @@ public class MainController {
             javafx.stage.Stage stage = new javafx.stage.Stage();
             stage.setTitle("Modifica Transazione");
             stage.setScene(new javafx.scene.Scene(root));
+            com.example.financestep.IconUtil.applica(stage);
             stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
             stage.showAndWait();
 
@@ -583,6 +810,8 @@ public class MainController {
         dialog.setTitle("Filtra Transazioni");
         dialog.setHeaderText("Ricerca nella tabella");
         dialog.setContentText("Inserisci testo da cercare (es. 'Pizza', 'Entrata', '2026'):");
+
+        com.example.financestep.IconUtil.applica(dialog);
 
         // 2. Creiamo il terzo bottone per azzerare il filtro
         javafx.scene.control.ButtonType btnAzzera = new javafx.scene.control.ButtonType("Azzera Filtro");
@@ -674,6 +903,7 @@ public class MainController {
             Stage stage = new Stage();
             stage.setTitle("Guida all'Uso - FinanceStep");
             stage.setScene(new Scene(root));
+            com.example.financestep.IconUtil.applica(stage);
             stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
             stage.showAndWait();
 
@@ -712,6 +942,11 @@ public class MainController {
         lblSaldoPortafoglio.setText("0.00");
         lblSalvadanaio.setText("0.00");
         lblObiettivo.setText("0.00");
+
+        // Quando clicchi sullo sfondo, sposta il focus sul VBox principale (togliendolo dai bottoni/tabelle)
+        rootVBox.setOnMouseClicked(event -> {
+            rootVBox.requestFocus();
+        });
 
         /* Quanto un elemento di una tabella non viene selezionato
         il pulsante "Annulla Selezione" di Edit viene nascosto
@@ -781,6 +1016,8 @@ public class MainController {
                         javafx.scene.control.ButtonType btnRiferisci = new javafx.scene.control.ButtonType("Riferisci");
                         javafx.scene.control.ButtonType btnAnnulla = new javafx.scene.control.ButtonType("Annulla", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
                         conferma.getButtonTypes().setAll(btnRiferisci, btnAnnulla);
+
+                        com.example.financestep.IconUtil.applica(conferma);
 
                         conferma.showAndWait().ifPresent(risposta -> {
                             if (risposta == btnRiferisci) {
@@ -928,6 +1165,7 @@ public class MainController {
         dialog.setTitle("Modifica Obiettivo");
         dialog.setHeaderText("Inserisci il nuovo obiettivo per il salvadanaio:");
         dialog.setContentText("Importo (€):");
+        com.example.financestep.IconUtil.applica((javafx.stage.Stage) dialog.getDialogPane().getScene().getWindow());
 
         dialog.showAndWait().ifPresent(risultato -> {
             try {
@@ -956,6 +1194,8 @@ public class MainController {
         dialog.setTitle("Versa nel Salvadanaio");
         dialog.setHeaderText("Sposta risorse dal Portafoglio al Salvadanaio");
         dialog.setContentText("Importo (€):");
+
+        com.example.financestep.IconUtil.applica(dialog);
 
         dialog.showAndWait().ifPresent(risultato -> {
             try {
@@ -996,6 +1236,8 @@ public class MainController {
         dialog.setTitle("Preleva dal Salvadanaio");
         dialog.setHeaderText("Sposta risorse dal Salvadanaio al Portafoglio");
         dialog.setContentText("Importo (€):");
+
+        com.example.financestep.IconUtil.applica(dialog);
 
         dialog.showAndWait().ifPresent(risultato -> {
             try {
@@ -1093,10 +1335,13 @@ public class MainController {
 
     // Metodo che chiede conferma per un task completato, con "Invia Denaro" o "Annulla"
     private void chiediInvioPremio(Task task) {
+        boolean inRitardo = LocalDate.now().isAfter(task.getScadenza());
+
         javafx.scene.control.Alert conferma = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
-        conferma.setTitle("Task Completato");
-        conferma.setHeaderText(task.getDestinatario() + " ha completato il task '" + task.getTitolo() + "'");
-        conferma.setContentText("Premio da inviare: €" + String.format("%.2f", task.getPremio()));
+        conferma.setTitle(inRitardo ? "Sollecito: Premio in Sospeso" : "Task Completato");
+        conferma.setHeaderText((inRitardo ? "⚠ In ritardo — " : "") + task.getDestinatario() + " ha completato il task '" + task.getTitolo() + "'");
+        conferma.setContentText("Premio da inviare: €" + String.format("%.2f", task.getPremio())
+                + (inRitardo ? "\nLa scadenza (" + task.getScadenza() + ") è passata: invia il premio quanto prima." : ""));
 
         javafx.scene.control.ButtonType btnInvia = new javafx.scene.control.ButtonType("Invia Denaro");
         javafx.scene.control.ButtonType btnAnnulla = new javafx.scene.control.ButtonType("Annulla", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -1187,6 +1432,8 @@ public class MainController {
         javafx.scene.control.ButtonType btnRifletti = new javafx.scene.control.ButtonType("Rifletti", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
         conferma.getButtonTypes().setAll(btnAccetta, btnRifiuta, btnRifletti);
 
+        com.example.financestep.IconUtil.applica(conferma);
+
         conferma.showAndWait().ifPresent(risposta -> {
             if (risposta == btnAccetta) {
                 accettaRichiesta(r);
@@ -1210,6 +1457,7 @@ public class MainController {
                 alert.setTitle("Obiettivo Raggiunto! 🎉");
                 alert.setHeaderText("Complimenti!");
                 alert.setContentText("Hai raggiunto o superato il tuo obiettivo di " + String.format("%.2f", obiettivo) + " €!");
+                com.example.financestep.IconUtil.applica(alert);
                 alert.showAndWait();
             }
         } catch (NumberFormatException e) {
@@ -1249,6 +1497,7 @@ public class MainController {
             Stage stage = new Stage();
             stage.setTitle("Nuova Transazione");
             stage.setScene(new Scene(root));
+            com.example.financestep.IconUtil.applica(stage);
             stage.show();
 
         } catch (IOException e) {
@@ -1293,6 +1542,7 @@ public class MainController {
             Stage stage = new Stage();
             stage.setTitle("Nuovo Task - FinanceStep");
             stage.setScene(new Scene(root));
+            com.example.financestep.IconUtil.applica(stage);
             stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
             stage.showAndWait();
 
@@ -1345,6 +1595,7 @@ public class MainController {
             Stage stage = new Stage();
             stage.setTitle("Nuova Richiesta Extra - FinanceStep");
             stage.setScene(new Scene(root));
+            com.example.financestep.IconUtil.applica(stage);
             stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
             stage.showAndWait();
 
@@ -1371,6 +1622,8 @@ public class MainController {
         dialog.setTitle("Monitora Transazioni di uno Junior");
         dialog.setHeaderText(null);
         dialog.setContentText("Scrivi nome utente Junior da osservare:");
+
+        com.example.financestep.IconUtil.applica(dialog);
 
         dialog.showAndWait().ifPresent(nomeInserito -> {
             String nomeJunior = nomeInserito.trim();
@@ -1409,6 +1662,7 @@ public class MainController {
             Stage stage = new Stage();
             stage.setTitle("Transazioni di " + nomeJunior);
             stage.setScene(new Scene(root));
+            com.example.financestep.IconUtil.applica(stage);
             stage.show();
 
         } catch (IOException e) {
@@ -1423,6 +1677,7 @@ public class MainController {
         alert.setTitle(titolo);
         alert.setHeaderText(null);
         alert.setContentText(messaggio);
+        com.example.financestep.IconUtil.applica(alert);
         alert.showAndWait();
     }
 

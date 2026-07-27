@@ -101,6 +101,7 @@ public class RegistrazioneController {
         alert.setTitle("Errore registrazione");
         alert.setHeaderText(null);
         alert.setContentText(messaggio);
+        com.example.financestep.IconUtil.applica(alert);
         alert.showAndWait();
     }
 
@@ -115,6 +116,8 @@ public class RegistrazioneController {
             Stage stagePrincipale = new Stage();
             stagePrincipale.setTitle("FinanceStep - " + persona.getUsername());
             stagePrincipale.setScene(new Scene(root, 900, 600));
+            com.example.financestep.IconUtil.applica(stagePrincipale);
+            stagePrincipale.setMaximized(true);
             stagePrincipale.show();
 
             Stage stageRegistrazione = (Stage) ((Node) event.getSource()).getScene().getWindow();

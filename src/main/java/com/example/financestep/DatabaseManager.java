@@ -25,7 +25,8 @@ public class DatabaseManager {
                 + "ultimo_id_notificato INTEGER NOT NULL DEFAULT 0"
                 + "ultimo_id_premio_notificato INTEGER NOT NULL DEFAULT 0"
                 + "ultimo_id_richiesta_notificata INTEGER NOT NULL DEFAULT 0"
-                + ");";
+                + "ultimo_id_scaduto_notificato INTEGER NOT NULL DEFAULT 0"
+                +");";
 
         String sqlSalvadanai = "CREATE TABLE IF NOT EXISTS salvadanaio (\n" +
                 "    proprietario TEXT PRIMARY KEY,\n" +
@@ -98,6 +99,9 @@ public class DatabaseManager {
 
         // Aggiunta della colonna per memorizzare l'ultimo id che ha ricevuto una notifica di richiesta
         eseguiAlterSeNecessario("ALTER TABLE utenti ADD COLUMN ultimo_id_richiesta_notificata INTEGER NOT NULL DEFAULT 0");
+
+        // Aggiunta della colonna per memorizzare l'ultimo id che ha ricevuto la notifica di scadenza task
+        eseguiAlterSeNecessario("ALTER TABLE utenti ADD COLUMN ultimo_id_scaduto_notificato INTEGER NOT NULL DEFAULT 0");
     }
 
     private static void eseguiAlterSeNecessario(String sql) {
@@ -276,6 +280,38 @@ public class DatabaseManager {
 
     public static void aggiornaUltimoIdRichiestaNotificata(String username, int nuovoId) {
         String sql = "UPDATE utenti SET ultimo_id_richiesta_notificata = ? WHERE username = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, nuovoId);
+            pstmt.setString(2, username);
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int getUltimoIdScadutoNotificato(String username) {
+        String sql = "SELECT ultimo_id_scaduto_notificato FROM utenti WHERE username = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ultimo_id_scaduto_notificato");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public static void aggiornaUltimoIdScadutoNotificato(String username, int nuovoId) {
+        String sql = "UPDATE utenti SET ultimo_id_scaduto_notificato = ? WHERE username = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 

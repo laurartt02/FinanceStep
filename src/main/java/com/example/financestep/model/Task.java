@@ -7,7 +7,8 @@ public class Task {
     public enum StatoTask {
         IN_CORSO, // Junior non ha ancora finito
         COMPLETATO, // Junior ha riferito, in attesa che il Tutor invii il premio nel Salvadanaio
-        PAGATO // Tutor ha inviato il premio, Junior ha confermato
+        PAGATO, // Tutor ha inviato il premio, Junior ha confermato
+        SCADUTO // Junior non ha completato il task entro la scadenza, non più completabile
     }
     private int id; // -1 finché non salvato/caricato dal DB
     private String titolo;
@@ -79,6 +80,7 @@ public class Task {
             case IN_CORSO: return "In corso";
             case COMPLETATO: return "Completato (in attesa premio)";
             case PAGATO: return "Pagato";
+            case SCADUTO: return "Scaduto";
             default: return "";
         }
     }
