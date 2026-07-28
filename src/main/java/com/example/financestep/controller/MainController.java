@@ -1444,8 +1444,6 @@ public class MainController {
         });
     }
 
-
-
     private void controllaObiettivoRaggiunto() {
         try {
 
@@ -1456,9 +1454,21 @@ public class MainController {
                 javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
                 alert.setTitle("Obiettivo Raggiunto! 🎉");
                 alert.setHeaderText("Complimenti!");
-                alert.setContentText("Hai raggiunto o superato il tuo obiettivo di " + String.format("%.2f", obiettivo) + " €!");
+                alert.setContentText("Hai raggiunto o superato il tuo obiettivo di "
+                        + String.format("%.2f", obiettivo) +
+                        " €!\n\nL'obiettivo verrà azzerato. Puoi impostarne uno nuovo quando desideri");
                 com.example.financestep.IconUtil.applica(alert);
                 alert.showAndWait();
+
+                // Reset dell'obiettivo
+                salvadanaioCorrente.setSommaTarget(0);
+
+                // Aggiornamento UI
+                aggiornaVisteSalvadanaio();
+
+                // Salva il nuovo valore nel database
+                DatabaseManager.salvaSalvadanaio(salvadanaioCorrente, utenteCorrente.getUsername());
+
             }
         } catch (NumberFormatException e) {
             // Ignora eventuali errori di conversione temporanei
