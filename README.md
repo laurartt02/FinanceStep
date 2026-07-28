@@ -1,12 +1,8 @@
 # FinanceStep
 
----
-
 <img width="1046" height="190" alt="FinanceStep (logo)" src="https://github.com/user-attachments/assets/c7ff6a52-fbeb-46ef-839c-a7c62c68ae60" />
 
 A modern JavaFX application to manage personal finance, tasks, and allowance requests for families.
-
----
 
 # About the project
 
@@ -32,7 +28,6 @@ Managing personal expenses, allowance, and daily chores can often become chaotic
 * 👁️ **Junior Monitoring Mode** 
 	* Specialized view allowing parents/guardians to monitor transaction histories and progress for junior accounts.
 
----
 # Preview
 
 The Auth Page is the first windows you will see when you run the project.
@@ -125,7 +120,6 @@ Below the table if you are a Tutor user, you can see a button named "*Monitora T
 <img width="447" height="320" alt="Screenshot 2026-07-27 043243" src="https://github.com/user-attachments/assets/ddf0f3cb-2065-44ac-8caa-2c0d763a040f" />
 
 
----
 # Requirements
 
 Make sure you have the following installed on your computer: 
@@ -133,7 +127,7 @@ Make sure you have the following installed on your computer:
 - **Maven**: Version 3.6+ (if you want to build/run via CLI) 
 - **Git**: To clone the repository
 
----
+
 # How to use the application
 
 You can run this application, here's how:
@@ -142,7 +136,6 @@ You can run this application, here's how:
 - On Intellij go to File -> New -> Project from Version Control...
 - Copy the previous link in the URL field and press Clone
 
----
 # Author and Credits
 
 - **Name** : Laura Ratti (@laurartt02)
